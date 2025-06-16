@@ -49,6 +49,28 @@
       font-size: 0.95em;
       color: #777;
     }
+
+    /* WhatsApp button style */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #25D366;
+      color: white;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+    .whatsapp-float img {
+      width: 30px;
+      height: 30px;
+    }
   </style>
 </head>
 <body>
@@ -60,10 +82,15 @@
     <a href="https://chat.openai.com/" target="_blank" class="button">Chat Now / Sembang Sekarang</a>
     <p class="lead">📞 Call us: 012-3386162</p>
 
-    <!-- Updated Google Form -->
+    <!-- Google Form Embed -->
     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true" width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
     <div class="lang">Page in English & Bahasa Melayu</div>
   </div>
+
+  <!-- WhatsApp Floating Button -->
+  <a href="https://wa.me/60123386162" target="_blank" class="whatsapp-float">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Chat on WhatsApp">
+  </a>
 </body>
 </html>
