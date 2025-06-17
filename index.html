@@ -17,29 +17,33 @@
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      padding: 40px 20px;
-      text-align: center;
-      color: white;
+      height: 320px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-align: center;
     }
     header::after {
       content: '';
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.5); /* dark overlay */
+      background-color: rgba(0, 0, 0, 0.4);
       z-index: 1;
     }
     header img {
-      width: 180px;
+      width: 160px;
       margin-bottom: 10px;
-      position: relative;
       z-index: 2;
+      position: relative;
     }
     header h1 {
-      font-size: 28px;
-      position: relative;
+      font-size: 32px;
       z-index: 2;
+      position: relative;
     }
 
     .intro {
@@ -150,7 +154,7 @@
     <h1>Nesh Property</h1>
   </header>
 
-  <!-- Continue your HTML body content here -->
+  <!-- Your content continues here -->
 
 </body>
 </html>
