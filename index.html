@@ -6,11 +6,7 @@
   <title>Nesh Property</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #f7f7f7;
@@ -26,9 +22,8 @@
       width: 180px;
       margin-bottom: 10px;
     }
-    header h1 {
-      font-size: 28px;
-    }
+    header h1 { font-size: 28px; }
+
     .intro {
       text-align: center;
       padding: 30px 20px;
@@ -44,7 +39,7 @@
     }
     .property-listings {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
       padding: 40px 20px;
       max-width: 1200px;
@@ -57,9 +52,7 @@
       overflow: hidden;
       transition: 0.3s;
     }
-    .property-card:hover {
-      transform: translateY(-5px);
-    }
+    .property-card:hover { transform: translateY(-5px); }
     .property-card img {
       width: 100%;
       height: 200px;
@@ -72,6 +65,9 @@
       color: #003366;
       margin-bottom: 8px;
     }
+    .info p {
+      margin: 4px 0;
+    }
     .book-btn {
       display: inline-block;
       background-color: #d4af37;
@@ -81,6 +77,8 @@
       border-radius: 5px;
       text-decoration: none;
     }
+    .book-btn:hover { opacity: 0.9; }
+
     iframe {
       width: 100%;
       max-width: 800px;
@@ -115,6 +113,16 @@
       width: 30px;
       height: 30px;
     }
+    .btn-link {
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    .viewing { background-color: #25D366; color: white; }
+    .info-btn { background-color: #003366; color: white; }
   </style>
 </head>
 <body>
@@ -125,49 +133,45 @@
   </header>
 
   <div class="intro">
-  <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
-  <p>Saya adalah <strong>Perunding Hartanah & Pinjaman Bank</strong> anda dari Nesh Property.</p>
-  <p>REN No: 76546</p>
-  <p class="contact">📞 <a href="https://wa.me/60123386162" target="_blank" style="color: #25D366; text-decoration: none;">WhatsApp Me: +6012-3386162</a></p>
-</div>
-
-
- <div style="max-width: 500px; margin: 30px auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: left; font-family: Arial, sans-serif;">
-  <h2 style="color: #003366;">Double Storey - Klang</h2>
-  <p style="font-size: 1.2em; margin: 10px 0;">💰 <strong>RM550,000</strong></p>
-  <p>📍 <strong>Taman Sungai Kapar Indah</strong></p>
-  <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
-
-  <div style="margin-top: 20px;">
-    <a href="https://wa.me/60123386162?text=Hi%2C%20I%27m%20interested%20to%20book%20a%20viewing%20for%20the%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" 
-       target="_blank" 
-       style="display: inline-block; background-color: #25D366; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; margin-right: 10px;">
-      📅 Book Viewing
-    </a>
-
-    <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" 
-       target="_blank" 
-       style="display: inline-block; background-color: #003366; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none;">
-      ℹ️ More Info
-    </a>
+    <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
+    <p>Saya adalah <strong>Perunding Hartanah & Pinjaman Bank</strong> anda dari Nesh Property.</p>
+    <p>REN No: 76546</p>
+    <p class="contact">📲 <a href="https://wa.me/60123386162" target="_blank" style="color: #25D366; text-decoration: none;">WhatsApp Me: +6012-3386162</a></p>
   </div>
-</div>
 
+  <div class="property-listings">
+
+    <!-- Property 1 -->
+    <div class="property-card">
+      <img src="property1.jpg" alt="Double Storey - Klang">
+      <div class="info">
+        <h3>Double Storey - Klang</h3>
+        <p>💰 RM550,000</p>
+        <p>📍 Taman Sungai Kapar Indah</p>
+        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
+        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
+        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+      </div>
+    </div>
 
     <!-- Property 2 -->
     <div class="property-card">
-      <img src="property2.jpg" alt="Property 2">
+      <img src="property2.jpg" alt="Apartment - Setia Alam">
       <div class="info">
         <h3>Apartment - Setia Alam</h3>
         <p>💰 RM350,000</p>
         <p>📍 Mutiara Bukit Raja</p>
-        <p>🛏 3 Bed | 🚿 2 Bath</p>
-        <a class="book-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform" target="_blank">Book Viewing</a>
+        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
+        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Apartment%20in%20Setia%20Alam" target="_blank">📅 Book Viewing</a>
+        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Apartment%20in%20Setia%20Alam" target="_blank">ℹ️ More Info</a>
       </div>
     </div>
+
+    <!-- Add more property blocks here -->
+
   </div>
 
-  <!-- Google Form -->
+  <!-- Google Form Embed -->
   <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true">Loading…</iframe>
 
   <div class="lang">Page in English & Bahasa Melayu</div>
@@ -179,3 +183,4 @@
 
 </body>
 </html>
+
