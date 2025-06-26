@@ -1,320 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nesh Property</title>
-  <link href="https:
-//fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f7f7f7;
-      color: #333;
-    }
-    header {
-      background-color: #003366;
-      padding: 20px;
-      text-align: center;
-      color: white;
-    }
-    header img {
-      width: 180px;
-      margin-bottom: 10px;
-    }
-    header h1 { font-size: 28px; }
-    .nav {
-      text-align: center;
-      margin: 20px 0;
-    }
-    .nav a {
-      background-color: #d4af37;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      text-decoration: none;
-      margin: 0 10px;
-    }
-    .nav a:hover { opacity: 0.9; }
-    .intro {
-      text-align: center;
-      padding: 30px 20px;
-      background: white;
-    }
-    .intro p {
-      font-size: 18px;
-      margin: 10px 0;
-    }
-    .contact {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    .property-listings {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      padding: 40px 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .property-card {
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: 0.3s;
-    }
-    .property-card:hover { transform: translateY(-5px); }
-    .property-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-    .info {
-      padding: 15px;
-    }
-    .info h3 {
-      color: #003366;
-      margin-bottom: 8px;
-    }
-    .info p {
-      margin: 4px 0;
-    }
-    .btn-link {
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      margin-right: 10px;
-      margin-top: 10px;
-    }
-    .viewing { background-color: #25D366; color: white; }
-    .info-btn { background-color: #003366; color: white; }
-    iframe {
-      width: 100%;
-      max-width: 800px;
-      height: 800px;
-      border: none;
-      margin: 40px auto;
-      display: block;
-    }
-    .lang {
-      text-align: center;
-      font-size: 0.9em;
-      color: #777;
-      margin-bottom: 30px;
-    }
-    .whatsapp-float {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #25D366;
-      color: white;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
-    .whatsapp-float img {
-      width: 30px;
-      height: 30px;
-    }
-  </style>
+  <title>Real Estate CRM</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js" defer></script>
 </head>
+
 <body>
-  <header>
-    <img src="logo_2.png" alt="Nesh Property Logo" />
-    <h1>Nesh Property Management</h1>
-  </header>
+  <h1 style="color: red; text-align: center;">Real Estate CRM</h1>
 
-  <div class="nav">
-    <a href="index.html">🏡 Home</a>
-    <a href="crm.html">🔒 Agent CRM</a>
+  <!-- Navigation -->
+  <nav style="text-align: center;">
+    <button onclick="showPage('tablePage')" style="background-color: red; color: white; padding: 10px 20px;">View Properties</button>
+    <button onclick="showPage('formPage')" style="background-color: red; color: white; padding: 10px 20px;">Add Property</button>
+  </nav>
+
+  <!-- Table Page -->
+  <div id="tablePage" class="page">
+    <h2 style="text-align: center;">Properties List</h2>
+
+    <!-- Search Bar -->
+    <div style="text-align: center; margin-bottom: 20px;">
+      <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" style="padding: 10px; width: 80%; max-width: 400px;" />
+    </div>
+
+    <div class="table-container">
+      <table class="red-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
+            <th>Follow-Up</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Next Follow-Up</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="data-table-body"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="intro">
-    <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
-    <p>Saya adalah <strong>Perunding Hartanah & Pinjaman Bank</strong> anda dari Nesh Property.</p>
-    <p>REN No: 76546</p>
-    <p class="contact">📲 <a href="https://wa.me/60123386162" target="_blank" style="color: #25D366; text-decoration: none;">WhatsApp Me: +6012-3386162</a></p>
+  <!-- Form Page -->
+  <div id="formPage" class="page" style="display: none;">
+    <h2 style="color: red; text-align: center;">Add / Edit Property</h2>
+    <form id="addForm" style="text-align: center;">
+      <input type="hidden" id="recordId" /> <!-- Hidden field for storing record ID -->
+
+      <label>Name:</label><br />
+      <input type="text" id="name" required /><br />
+
+      <label>Phone:</label><br />
+      <input type="text" id="phone" required /><br />
+
+      <label>Email:</label><br />
+      <input type="email" id="email" required /><br />
+
+      <label>Location:</label><br />
+      <input type="text" id="location" required /><br />
+
+      <label>Property:</label><br />
+      <input type="text" id="property" required /><br />
+
+      <label>Source:</label><br />
+      <input type="text" id="source" required /><br />
+
+      <label>Follow-Up:</label><br />
+      <input type="date" id="followUp" required /><br />
+
+      <label>Status:</label><br />
+      <input type="text" id="status" required /><br />
+
+      <label>Notes:</label><br />
+      <textarea id="notes" required></textarea><br />
+
+      <button type="submit" style="background-color: red; color: white; padding: 10px 20px;">Save Property</button>
+    </form>
   </div>
-
-  <!-- Your property listings here -->
-  <div class="property-listings">
-    
-    <!-- Property 1 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM330,000</p>
-        <p>📍 Taman Sungai Kapar Indah</p>
-        <p>🏠 980sqft</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-    <!-- Property 2 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Bukit Raja</h3>
-        <p>💰 RM480,000</p>
-        <p>📍 Mutiara Bukit Raja</p>
-        <p>🏠 Double Storey</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Apartment%20in%20Setia%20Alam" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Apartment%20in%20Setia%20Alam" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 3 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM250,000</p>
-        <p>📍 Taman Klang Utama</p>
-        <p>🏠 825sqft</p>
-        <p>🛏 2 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Apartment%20in%20Setia%20Alam" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Apartment%20in%20Setia%20Alam" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 4 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Single Storey - Klang</h3>
-        <p>💰 RM420,000</p>
-        <p>📍 Taman Sentosa Dato Abdul Hamid</p>
-        <p>🏠 1200sqft</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 5 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM330,000</p>
-        <p>📍 Taman Sungai Kapar Indah</p>
-        <p>🏠 980sqft</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 6 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM650,000</p>
-        <p>📍 Bayu Perdana 2</p>
-        <p>🏠 1500sqft</p>
-        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 7 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Apartment - Cheras</h3>
-        <p>💰 RM270,000</p>
-        <p>📍 Pangsapuri Seri Murni</p>
-        <p>🏠 820sqft</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 8 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Apartment - Bukit Raja</h3>
-        <p>💰 RM180,000</p>
-        <p>📍 Apartment Mutiara Bukit Raja 1</p>
-        <p>🏠 680sqft</p>
-        <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 9 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM750,000</p>
-        <p>📍 Bandar Puteri Klang </p>
-        <p>🏠 1350sqft</p>
-        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 10 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Klang</h3>
-        <p>💰 RM530,000</p>
-        <p>📍 Teluk Pulai</p>
-        <p>🏠 1500sqft</p>
-        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 11 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Seremban</h3>
-        <p>💰 RM600,000</p>
-        <p>📍 Sendayan</p>
-        <p>🏠 1400sqft</p>
-        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-
-     <!-- Property 12 -->
-    <div class="property-card">
-      <div class="info">
-        <h3>Double Storey - Kapar</h3>
-        <p>💰 RM410,000</p>
-        <p>📍 Taman Damai</p>
-        <p>🏠 1400sqft</p>
-        <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
-        <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
-        <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
-      </div>
-    </div>
-    <!-- Property cards code you posted earlier -->
-  </div>
-
-  <!-- Google Form Embed -->
-  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true">Loading…</iframe>
-
-  <div class="lang">Page in English & Bahasa Melayu</div>
-
-  <!-- WhatsApp Floating Button -->
-  <a href="https://wa.me/60123386162" target="_blank" class="whatsapp-float">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Chat on WhatsApp">
-  </a>
 </body>
 </html>
