@@ -1,146 +1,142 @@
-/* Base Reset & Font */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* General styling */
 body {
   font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
   background-color: #f7f7f7;
   color: #333;
-  line-height: 1.6;
 }
 
-/* Header */
 header {
   background-color: #003366;
-  color: white;
   padding: 20px;
   text-align: center;
+  color: white;
 }
 
-header h1 {
-  font-size: 28px;
+h1, h2.title {
+  margin: 0 0 20px 0;
 }
 
-/* Navigation */
 nav {
   text-align: center;
   margin: 20px 0;
 }
 
-nav a,
-nav button {
+nav a, nav button {
   background-color: #d4af37;
   color: white;
   padding: 10px 20px;
+  margin: 0 10px;
   border-radius: 5px;
   text-decoration: none;
-  margin: 0 10px;
   border: none;
   font-size: 16px;
   cursor: pointer;
 }
 
-nav a:hover,
-nav button:hover {
+nav a:hover, nav button:hover {
   opacity: 0.9;
 }
 
-/* Page Wrapper */
+/* Page container */
 .page {
-  background-color: white;
+  padding: 20px;
   max-width: 1000px;
-  margin: 30px auto;
-  padding: 30px;
+  margin: auto;
+  background-color: white;
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Table Styles */
-table {
+/* Search bar */
+#searchInput {
+  padding: 12px;
+  width: 90%;
+  max-width: 500px;
+  margin: 0 auto 20px auto;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Table styling */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.red-table {
   width: 100%;
+  min-width: 1200px;
   border-collapse: collapse;
   margin-top: 20px;
 }
 
-th, td {
+.red-table th, .red-table td {
   padding: 12px;
-  border: 1px solid #ddd;
   text-align: left;
+  border: 1px solid #ddd;
 }
 
-th {
-  background-color: #f44336;
+.red-table th {
+  background-color: #003366;
   color: white;
 }
 
-tr:nth-child(even) {
-  background-color: #f9f9f9;
+.red-table tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
 
-tr:hover {
-  background-color: #ffe5e5;
+.red-table tr:hover {
+  background-color: #e6f7ff;
 }
 
-/* Input & Form Styles */
-input,
-textarea {
-  padding: 10px;
-  margin: 10px 0;
-  width: 90%;
-  max-width: 400px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+.red-table td {
+  background-color: #ffffff;
 }
 
-textarea {
-  resize: vertical;
-  min-height: 100px;
+/* Action buttons inside table */
+button {
+  background-color: red;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 4px;
 }
 
+button:hover {
+  background-color: darkred;
+}
+
+/* Form styling */
 form {
   text-align: center;
 }
 
-form button[type="submit"] {
+form input, form textarea {
+  width: 80%;
+  max-width: 400px;
+  padding: 10px;
+  margin: 10px auto;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+form button {
   background-color: #003366;
   color: white;
   padding: 10px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
   margin-top: 10px;
 }
 
-form button[type="submit"]:hover {
+form button:hover {
   opacity: 0.9;
-}
-
-/* Action Buttons (Edit/Delete) */
-.action-button {
-  background-color: red;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-  margin-right: 6px;
-}
-
-.action-button:hover {
-  background-color: darkred;
-}
-
-/* Search Input */
-#searchInput {
-  padding: 10px;
-  width: 90%;
-  max-width: 400px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
 }
 
