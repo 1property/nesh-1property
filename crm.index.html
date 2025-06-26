@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real Estate CRM</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <h1 style="color: red; text-align: center;">Real Estate CRM</h1>
+
+  <!-- Navigation -->
+  <nav style="text-align: center;">
+    <button onclick="showPage('tablePage')" style="background-color: red; color: white; padding: 10px 20px;">View Properties</button>
+    <button onclick="showPage('formPage')" style="background-color: red; color: white; padding: 10px 20px;">Add Property</button>
+  </nav>
+
+  <!-- Table Page -->
+  <div id="tablePage" class="page">
+    <h2 style="text-align: center;">Properties List</h2>
+
+    <!-- Search Bar -->
+    <div style="text-align: center; margin-bottom: 20px;">
+      <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" style="padding: 10px; width: 80%; max-width: 400px;" />
+    </div>
+
+    <div class="table-container">
+      <table class="red-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
+            <th>Follow-Up</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Next Follow-Up</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="data-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Form Page -->
+  <div id="formPage" class="page" style="display: none;">
+    <h2 style="color: red; text-align: center;">Add / Edit Property</h2>
+    <form id="addForm" style="text-align: center;">
+      <input type="hidden" id="recordId" /> <!-- Hidden field for storing record ID -->
+
+      <label>Name:</label><br />
+      <input type="text" id="name" required /><br />
+
+      <label>Phone:</label><br />
+      <input type="text" id="phone" required /><br />
+
+      <label>Email:</label><br />
+      <input type="email" id="email" required /><br />
+
+      <label>Location:</label><br />
+      <input type="text" id="location" required /><br />
+
+      <label>Property:</label><br />
+      <input type="text" id="property" required /><br />
+
+      <label>Source:</label><br />
+      <input type="text" id="source" required /><br />
+
+      <label>Follow-Up:</label><br />
+      <input type="date" id="followUp" required /><br />
+
+      <label>Status:</label><br />
+      <input type="text" id="status" required /><br />
+
+      <label>Notes:</label><br />
+      <textarea id="notes" required></textarea><br />
+
+      <button type="submit" style="background-color: red; color: white; padding: 10px 20px;">Save Property</button>
+    </form>
+  </div>
+</body>
+</html>
