@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nesh Property</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https:
+//fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -23,7 +25,19 @@
       margin-bottom: 10px;
     }
     header h1 { font-size: 28px; }
-
+    .nav {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .nav a {
+      background-color: #d4af37;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+    .nav a:hover { opacity: 0.9; }
     .intro {
       text-align: center;
       padding: 30px 20px;
@@ -68,17 +82,16 @@
     .info p {
       margin: 4px 0;
     }
-    .book-btn {
+    .btn-link {
       display: inline-block;
-      background-color: #d4af37;
-      color: white;
-      padding: 10px 15px;
-      margin-top: 10px;
-      border-radius: 5px;
+      padding: 10px 14px;
+      border-radius: 6px;
       text-decoration: none;
+      margin-right: 10px;
+      margin-top: 10px;
     }
-    .book-btn:hover { opacity: 0.9; }
-
+    .viewing { background-color: #25D366; color: white; }
+    .info-btn { background-color: #003366; color: white; }
     iframe {
       width: 100%;
       max-width: 800px;
@@ -113,29 +126,18 @@
       width: 30px;
       height: 30px;
     }
-    .btn-link {
-      display: inline-block;
-      padding: 10px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      margin-right: 10px;
-      margin-top: 10px;
-    }
-    .viewing { background-color: #25D366; color: white; }
-    .info-btn { background-color: #003366; color: white; }
   </style>
 </head>
 <body>
-
-  <!-- Your content continues here -->
-
-</body>
-</html>
-
   <header>
     <img src="logo_2.png" alt="Nesh Property Logo" />
     <h1>Nesh Property Management</h1>
   </header>
+
+  <div class="nav">
+    <a href="index.html">🏡 Home</a>
+    <a href="crm.html">🔒 Agent CRM</a>
+  </div>
 
   <div class="intro">
     <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
@@ -144,8 +146,9 @@
     <p class="contact">📲 <a href="https://wa.me/60123386162" target="_blank" style="color: #25D366; text-decoration: none;">WhatsApp Me: +6012-3386162</a></p>
   </div>
 
+  <!-- Your property listings here -->
   <div class="property-listings">
-
+    
     <!-- Property 1 -->
     <div class="property-card">
       <div class="info">
@@ -301,7 +304,7 @@
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
       </div>
     </div>
-
+    <!-- Property cards code you posted earlier -->
   </div>
 
   <!-- Google Form Embed -->
@@ -313,7 +316,5 @@
   <a href="https://wa.me/60123386162" target="_blank" class="whatsapp-float">
     <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="Chat on WhatsApp">
   </a>
-
 </body>
 </html>
-
