@@ -7,89 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script src="script.js" defer></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f7f7f7;
-      color: #333;
-      padding: 20px;
-    }
-    header {
-      background-color: #003366;
-      padding: 20px;
-      text-align: center;
-      color: white;
-    }
-    header h1 {
-      font-size: 28px;
-    }
-    nav {
-      text-align: center;
-      margin: 20px 0;
-    }
-    nav a, nav button {
-      background-color: #d4af37;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      text-decoration: none;
-      margin: 0 10px;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    nav a:hover, nav button:hover {
-      opacity: 0.9;
-    }
-    .page {
-      padding: 30px;
-      max-width: 1000px;
-      margin: auto;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-    th {
-      background-color: #003366;
-      color: white;
-    }
-    input, textarea {
-      padding: 10px;
-      margin: 10px 0;
-      width: 100%;
-      max-width: 500px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button[type="submit"] {
-      background-color: #003366;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button[type="submit"]:hover {
-      opacity: 0.9;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -106,12 +24,11 @@
 
   <!-- Table Page -->
   <div id="tablePage" class="page">
-    <h2 style="text-align: center; color: #003366;">Properties List</h2>
-    <div style="text-align: center; margin-bottom: 20px;">
-      <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
-    </div>
-    <div class="table-container">
-      <table>
+    <h2 class="title">Properties List</h2>
+    <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
+
+    <div class="table-wrapper">
+      <table class="red-table">
         <thead>
           <tr>
             <th>Name</th>
@@ -134,39 +51,41 @@
 
   <!-- Form Page -->
   <div id="formPage" class="page" style="display: none;">
-    <h2 style="color: #003366; text-align: center;">Add / Edit Property</h2>
+    <h2 class="title">Add / Edit Property</h2>
     <form id="addForm">
       <input type="hidden" id="recordId" />
-      <label>Name:</label>
-      <input type="text" id="name" required />
 
-      <label>Phone:</label>
-      <input type="text" id="phone" required />
+      <label>Name:</label><br />
+      <input type="text" id="name" required /><br />
 
-      <label>Email:</label>
-      <input type="email" id="email" required />
+      <label>Phone:</label><br />
+      <input type="text" id="phone" required /><br />
 
-      <label>Location:</label>
-      <input type="text" id="location" required />
+      <label>Email:</label><br />
+      <input type="email" id="email" required /><br />
 
-      <label>Property:</label>
-      <input type="text" id="property" required />
+      <label>Location:</label><br />
+      <input type="text" id="location" required /><br />
 
-      <label>Source:</label>
-      <input type="text" id="source" required />
+      <label>Property:</label><br />
+      <input type="text" id="property" required /><br />
 
-      <label>Follow-Up:</label>
-      <input type="date" id="followUp" required />
+      <label>Source:</label><br />
+      <input type="text" id="source" required /><br />
 
-      <label>Status:</label>
-      <input type="text" id="status" required />
+      <label>Follow-Up:</label><br />
+      <input type="date" id="followUp" required /><br />
 
-      <label>Notes:</label>
-      <textarea id="notes" rows="3" required></textarea>
+      <label>Status:</label><br />
+      <input type="text" id="status" required /><br />
 
-      <button type="submit">💾 Save Property</button>
+      <label>Notes:</label><br />
+      <textarea id="notes" required></textarea><br />
+
+      <button type="submit">Save Property</button>
     </form>
   </div>
 </body>
 </html>
+
 
