@@ -34,13 +34,13 @@
   <!-- Navigation -->
   <nav>
     <a href="index.html">🏡 Home</a>
-    <button onclick="showPage('tablePage')">📋 View Properties</button>
-    <button onclick="showPage('formPage')">➕ Add Property</button>
+    <button onclick="showPage('tablePage')">📋 View Listing</button>
+    <button onclick="showPage('formPage')">➕ Add Listings</button>
   </nav>
 
   <!-- Table Page -->
   <div id="tablePage" class="page">
-    <h2 class="title">Properties List</h2>
+    <h2 class="title">Buyer List</h2>
     <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
 
     <div class="table-wrapper">
@@ -67,7 +67,7 @@
 
   <!-- Form Page -->
   <div id="formPage" class="page" style="display: none;">
-    <h2 class="title">Add / Edit Property</h2>
+    <h2 class="title">Add / Edit Listings</h2>
     <form id="addForm">
       <input type="hidden" id="recordId" />
 
@@ -98,7 +98,7 @@
       <label>Notes:</label><br />
       <textarea id="notes" required></textarea><br />
 
-      <button type="submit">Save Property</button>
+      <button type="submit">Save Listings</button>
     </form>
   </div>
 </body>
