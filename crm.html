@@ -11,6 +11,22 @@
 </head>
 
 <body>
+  <!-- 🔐 Password protection script -->
+  <script>
+    const allowedPassword = "12345"; // Change this to your desired password
+    const entered = sessionStorage.getItem("crm_access");
+
+    if (!entered) {
+      const input = prompt("Enter password to access CRM:");
+      if (input === allowedPassword) {
+        sessionStorage.setItem("crm_access", "true");
+      } else {
+        alert("Wrong password! Redirecting to Home.");
+        window.location.href = "index.html";
+      }
+    }
+  </script>
+
   <header>
     <h1>Real Estate CRM System</h1>
   </header>
@@ -87,5 +103,6 @@
   </div>
 </body>
 </html>
+
 
 
