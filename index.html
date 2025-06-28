@@ -100,6 +100,23 @@
       margin: 40px auto;
       display: block;
     }
+    .calculator input {
+      padding: 6px;
+      margin: 5px 0;
+      width: 100%;
+    }
+    .calculator-result {
+      font-weight: bold;
+      color: #003366;
+    }
+    .toggle-calculator {
+      cursor: pointer;
+      color: #003366;
+      font-size: 13px;
+      margin-top: 10px;
+      display: inline-block;
+      text-decoration: underline;
+    }
     .lang {
       text-align: center;
       font-size: 0.9em;
@@ -159,6 +176,18 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
 
@@ -172,9 +201,21 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Apartment%20in%20Setia%20Alam" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Apartment%20in%20Setia%20Alam" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
-
+   
      <!-- Property 3 -->
     <div class="property-card">
       <div class="info">
@@ -185,8 +226,21 @@
         <p>🛏 2 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Apartment%20in%20Setia%20Alam" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20the%20Apartment%20in%20Setia%20Alam" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+     
 
      <!-- Property 4 -->
     <div class="property-card">
@@ -198,8 +252,22 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+      
+
 
      <!-- Property 5 -->
     <div class="property-card">
@@ -211,8 +279,21 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 1 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+    
 
      <!-- Property 6 -->
     <div class="property-card">
@@ -224,8 +305,21 @@
         <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+     
 
      <!-- Property 7 -->
     <div class="property-card">
@@ -237,9 +331,21 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
-
+    
      <!-- Property 8 -->
     <div class="property-card">
       <div class="info">
@@ -250,8 +356,21 @@
         <p>🛏 3 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+      
 
      <!-- Property 9 -->
     <div class="property-card">
@@ -263,8 +382,21 @@
         <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+     
 
      <!-- Property 10 -->
     <div class="property-card">
@@ -276,8 +408,21 @@
         <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+     
 
      <!-- Property 11 -->
     <div class="property-card">
@@ -289,9 +434,21 @@
         <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 3 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
-
+   
      <!-- Property 12 -->
     <div class="property-card">
       <div class="info">
@@ -302,10 +459,40 @@
         <p>🛏 4 Bed &nbsp; | &nbsp; 🚿 2 Bath</p>
         <a class="btn-link viewing" href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank">📅 Book Viewing</a>
         <a class="btn-link info-btn" href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank">ℹ️ More Info</a>
+
+        <span class="toggle-calculator" onclick="toggleCalculator(this)">📊 Show Loan Calculator</span>
+        <div class="calculator" style="display: none;">
+          <label>Loan Amount (RM):</label>
+          <input type="number" value="330000" class="loan-amount" /><br />
+          <label>Interest Rate (%):</label>
+          <input type="number" value="4.0" class="interest-rate" /><br />
+          <label>Loan Tenure (Years):</label>
+          <input type="number" value="30" class="loan-years" /><br />
+          <button onclick="calculateLoan(this)">Calculate</button>
+          <p class="calculator-result"></p>
+        </div>
       </div>
     </div>
+      
     <!-- Property cards code you posted earlier -->
   </div>
+
+    <script>
+    function toggleCalculator(el) {
+      const calc = el.nextElementSibling;
+      calc.style.display = calc.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function calculateLoan(btn) {
+      const card = btn.closest('.calculator');
+      const amount = parseFloat(card.querySelector('.loan-amount').value);
+      const interest = parseFloat(card.querySelector('.interest-rate').value) / 100 / 12;
+      const years = parseFloat(card.querySelector('.loan-years').value) * 12;
+
+      const monthly = (amount * interest * Math.pow(1 + interest, years)) / (Math.pow(1 + interest, years) - 1);
+      card.querySelector('.calculator-result').textContent = `Estimated Monthly Payment: RM ${monthly.toFixed(2)}`;
+    }
+  </script>
 
   <!-- Google Form Embed -->
   <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true">Loading…</iframe>
