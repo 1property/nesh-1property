@@ -167,3 +167,4 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchData(); // Load initial data
   showPage('tablePage');
 });
+
