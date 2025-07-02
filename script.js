@@ -1,31 +1,30 @@
 // Supabase Initialization
 const SUPABASE_URL = 'https://erabbaphqueanoddsoqh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Truncated for clarity
 const tableName = 'callproperty';
-const rentTableName = 'rentinfo'; // New table for rent data
+const rentTableName = 'rentinfo';
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentEditingId = null; // Track the current editing ID
+let currentEditingId = null;
 
-// Fetch data from Supabase and populate the table
+// ==============================
+// CRM BUYER SECTION
+// ==============================
+
 async function fetchData(query = '') {
   let { data, error } = await supabaseClient.from(tableName).select('*');
-
   if (error) {
     alert('❌ Failed to load data: ' + error.message);
     return;
   }
 
   if (query) {
-    // Filter the data based on the search query
-    data = data.filter((row) => {
-      return (
-        row.name.toLowerCase().includes(query.toLowerCase()) ||
-        row.location.toLowerCase().includes(query.toLowerCase()) ||
-        row.status.toLowerCase().includes(query.toLowerCase())
-      );
-    });
+    data = data.filter((row) =>
+      row.name.toLowerCase().includes(query.toLowerCase()) ||
+      row.location.toLowerCase().includes(query.toLowerCase()) ||
+      row.status.toLowerCase().includes(query.toLowerCase())
+    );
   }
 
   const tableBody = document.getElementById('data-table-body');
@@ -58,10 +57,8 @@ async function fetchData(query = '') {
   });
 }
 
-// Handle form submission for both adding and updating properties
 document.getElementById('addForm').addEventListener('submit', async function (e) {
   e.preventDefault();
-
   const formData = {
     name: document.getElementById('name').value,
     phone: document.getElementById('phone').value,
@@ -75,20 +72,12 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
   };
 
   if (currentEditingId) {
-    const { error } = await supabaseClient.from(tableName).update(formData).eq('id', currentEditingId);
-    if (error) {
-      alert('❌ Failed to update: ' + error.message);
-    } else {
-      alert('✅ Property updated!');
-    }
+    await supabaseClient.from(tableName).update(formData).eq('id', currentEditingId);
+    alert('✅ Property updated!');
     currentEditingId = null;
   } else {
-    const { error } = await supabaseClient.from(tableName).insert([formData]);
-    if (error) {
-      alert('❌ Failed to insert: ' + error.message);
-    } else {
-      alert('✅ Property added!');
-    }
+    await supabaseClient.from(tableName).insert([formData]);
+    alert('✅ Property added!');
   }
 
   resetForm();
@@ -97,49 +86,29 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
 });
 
 function resetForm() {
-  document.getElementById('name').value = '';
-  document.getElementById('phone').value = '';
-  document.getElementById('email').value = '';
-  document.getElementById('location').value = '';
-  document.getElementById('property').value = '';
-  document.getElementById('source').value = '';
-  document.getElementById('followUp').value = '';
-  document.getElementById('status').value = '';
-  document.getElementById('notes').value = '';
+  ['name', 'phone', 'email', 'location', 'property', 'source', 'followUp', 'status', 'notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
 }
 
 async function editProperty(id) {
   const { data, error } = await supabaseClient.from(tableName).select('*').eq('id', id).single();
+  if (error) return alert('Error: ' + error.message);
 
-  if (error) {
-    alert('Error loading data for editing: ' + error.message);
-    return;
-  }
-
-  document.getElementById('name').value = data.name;
-  document.getElementById('phone').value = data.phone;
-  document.getElementById('email').value = data.email;
-  document.getElementById('location').value = data.location;
-  document.getElementById('property').value = data.property;
-  document.getElementById('source').value = data.source;
-  document.getElementById('followUp').value = data.followup;
-  document.getElementById('status').value = data.status;
-  document.getElementById('notes').value = data.notes;
+  Object.entries(data).forEach(([key, value]) => {
+    const input = document.getElementById(key);
+    if (input) input.value = value;
+  });
 
   currentEditingId = id;
   showPage('formPage');
 }
 
 async function deleteProperty(id) {
-  const confirmDelete = confirm('Are you sure you want to delete this property?');
-  if (confirmDelete) {
-    const { error } = await supabaseClient.from(tableName).delete().eq('id', id);
-    if (error) {
-      alert('❌ Failed to delete: ' + error.message);
-    } else {
-      alert('✅ Property deleted!');
-      fetchData();
-    }
+  if (confirm('Are you sure you want to delete this property?')) {
+    await supabaseClient.from(tableName).delete().eq('id', id);
+    alert('✅ Property deleted!');
+    fetchData();
   }
 }
 
@@ -160,7 +129,10 @@ document.addEventListener('DOMContentLoaded', () => {
   showPage('tablePage');
 });
 
-// 🚀 RENT FORM: Handle file upload for tenancy agreement
+// ==============================
+// RENT MANAGEMENT SECTION
+// ==============================
+
 const rentForm = document.getElementById('rentForm');
 if (rentForm) {
   rentForm.addEventListener('submit', async (e) => {
@@ -174,38 +146,27 @@ if (rentForm) {
     const fileInput = document.getElementById('agreementFile');
 
     let agreementUrl = '';
-
     if (fileInput && fileInput.files.length > 0) {
       const file = fileInput.files[0];
       const filePath = `agreements/${Date.now()}_${file.name}`;
-
-      const { data: uploadData, error: uploadError } = await supabaseClient.storage
-        .from('agreements')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        alert('File upload error: ' + uploadError.message);
-        return;
-      }
-
+      const { error: uploadError } = await supabaseClient.storage.from('agreements').upload(filePath, file);
+      if (uploadError) return alert('Upload error: ' + uploadError.message);
       const { data: publicUrl } = supabaseClient.storage.from('agreements').getPublicUrl(filePath);
       agreementUrl = publicUrl.publicUrl;
     }
 
-    const { error } = await supabaseClient.from(rentTableName).insert([
-      {
-        tenant_name: tenantName,
-        property_address: propertyAddress,
-        monthly_rent: monthlyRent,
-        due_date: rentDueDate,
-        agreement_url: agreementUrl,
-        contact: tenantContact,
-        status: 'Active'
-      }
-    ]);
+    const { error } = await supabaseClient.from(rentTableName).insert([{
+      tenant_name: tenantName,
+      property_address: propertyAddress,
+      monthly_rent: monthlyRent,
+      due_date: rentDueDate,
+      agreement_url: agreementUrl,
+      contact: tenantContact,
+      status: 'Active'
+    }]);
 
     if (error) {
-      alert('Failed to save rent info: ' + error.message);
+      alert('❌ Failed to save rent info: ' + error.message);
     } else {
       alert('✅ Rent info saved!');
       rentForm.reset();
