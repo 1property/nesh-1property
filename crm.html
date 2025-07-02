@@ -36,6 +36,7 @@
     <a href="index.html">🏡 Home</a>
     <button onclick="showPage('tablePage')">📋 View Listing</button>
     <button onclick="showPage('formPage')">➕ Add Listings</button>
+    <button onclick="showPage('rentPage')">💰 Rent Management</button>
   </nav>
 
   <!-- Table Page -->
@@ -101,8 +102,49 @@
       <button type="submit">Save Listings</button>
     </form>
   </div>
+
+  <!-- Rent Management Page -->
+  <div id="rentPage" class="page" style="display: none;">
+    <h2 class="title">🏠 Rent Management</h2>
+    <form id="rentForm">
+      <label>Tenant Name:</label><br />
+      <input type="text" id="tenantName" required /><br />
+
+      <label>Property Address:</label><br />
+      <input type="text" id="propertyAddress" required /><br />
+
+      <label>Monthly Rent (RM):</label><br />
+      <input type="number" id="monthlyRent" required /><br />
+
+      <label>Due Date:</label><br />
+      <input type="date" id="rentDueDate" required /><br />
+
+      <label>Tenancy Agreement Link:</label><br />
+      <input type="url" id="agreementLink" /><br />
+
+      <label>Tenant Contact:</label><br />
+      <input type="text" id="tenantContact" /><br />
+
+      <button type="submit">Save Rent Info</button>
+    </form>
+
+    <div class="table-wrapper">
+      <table class="red-table">
+        <thead>
+          <tr>
+            <th>Tenant Name</th>
+            <th>Property</th>
+            <th>Rent (RM)</th>
+            <th>Due Date</th>
+            <th>Agreement</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="rent-table-body"></tbody>
+      </table>
+    </div>
+  </div>
 </body>
 </html>
-
-
-
