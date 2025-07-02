@@ -2,6 +2,7 @@
 const SUPABASE_URL = 'https://erabbaphqueanoddsoqh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4';
 const tableName = 'callproperty';
+const rentTableName = 'rentinfo'; // New table for rent data
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -74,16 +75,14 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
   };
 
   if (currentEditingId) {
-    // Update the existing record
     const { error } = await supabaseClient.from(tableName).update(formData).eq('id', currentEditingId);
     if (error) {
       alert('❌ Failed to update: ' + error.message);
     } else {
       alert('✅ Property updated!');
     }
-    currentEditingId = null; // Reset the current editing ID after update
+    currentEditingId = null;
   } else {
-    // Insert a new property
     const { error } = await supabaseClient.from(tableName).insert([formData]);
     if (error) {
       alert('❌ Failed to insert: ' + error.message);
@@ -92,12 +91,11 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
     }
   }
 
-  resetForm(); // Reset form after adding or updating
-  fetchData(); // Refresh the table data
+  resetForm();
+  fetchData();
   showPage('tablePage');
 });
 
-// Reset form fields after add or update
 function resetForm() {
   document.getElementById('name').value = '';
   document.getElementById('phone').value = '';
@@ -110,7 +108,6 @@ function resetForm() {
   document.getElementById('notes').value = '';
 }
 
-// Edit property function
 async function editProperty(id) {
   const { data, error } = await supabaseClient.from(tableName).select('*').eq('id', id).single();
 
@@ -119,7 +116,6 @@ async function editProperty(id) {
     return;
   }
 
-  // Populate form fields with the existing data
   document.getElementById('name').value = data.name;
   document.getElementById('phone').value = data.phone;
   document.getElementById('email').value = data.email;
@@ -130,11 +126,10 @@ async function editProperty(id) {
   document.getElementById('status').value = data.status;
   document.getElementById('notes').value = data.notes;
 
-  currentEditingId = id; // Set the currentEditingId to the property being edited
+  currentEditingId = id;
   showPage('formPage');
 }
 
-// Delete property function
 async function deleteProperty(id) {
   const confirmDelete = confirm('Are you sure you want to delete this property?');
   if (confirmDelete) {
@@ -143,18 +138,16 @@ async function deleteProperty(id) {
       alert('❌ Failed to delete: ' + error.message);
     } else {
       alert('✅ Property deleted!');
-      fetchData(); // Refresh the table data
+      fetchData();
     }
   }
 }
 
-// Search properties function
 function searchProperties() {
   const query = document.getElementById('searchInput').value;
-  fetchData(query); // Fetch data with search query
+  fetchData(query);
 }
 
-// Show the correct page (form or table)
 function showPage(pageId) {
   document.querySelectorAll('.page').forEach((page) => {
     page.style.display = 'none';
@@ -162,9 +155,61 @@ function showPage(pageId) {
   document.getElementById(pageId).style.display = 'block';
 }
 
-// Initialize the page on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => {
-  fetchData(); // Load initial data
+  fetchData();
   showPage('tablePage');
 });
+
+// 🚀 RENT FORM: Handle file upload for tenancy agreement
+const rentForm = document.getElementById('rentForm');
+if (rentForm) {
+  rentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const tenantName = document.getElementById('tenantName').value;
+    const propertyAddress = document.getElementById('propertyAddress').value;
+    const monthlyRent = document.getElementById('monthlyRent').value;
+    const rentDueDate = document.getElementById('rentDueDate').value;
+    const tenantContact = document.getElementById('tenantContact').value;
+    const fileInput = document.getElementById('agreementFile');
+
+    let agreementUrl = '';
+
+    if (fileInput && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const filePath = `agreements/${Date.now()}_${file.name}`;
+
+      const { data: uploadData, error: uploadError } = await supabaseClient.storage
+        .from('agreements')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        alert('File upload error: ' + uploadError.message);
+        return;
+      }
+
+      const { data: publicUrl } = supabaseClient.storage.from('agreements').getPublicUrl(filePath);
+      agreementUrl = publicUrl.publicUrl;
+    }
+
+    const { error } = await supabaseClient.from(rentTableName).insert([
+      {
+        tenant_name: tenantName,
+        property_address: propertyAddress,
+        monthly_rent: monthlyRent,
+        due_date: rentDueDate,
+        agreement_url: agreementUrl,
+        contact: tenantContact,
+        status: 'Active'
+      }
+    ]);
+
+    if (error) {
+      alert('Failed to save rent info: ' + error.message);
+    } else {
+      alert('✅ Rent info saved!');
+      rentForm.reset();
+    }
+  });
+}
 
