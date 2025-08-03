@@ -188,7 +188,6 @@ async function fetchRentData() {
       <td>${rent.property_address}</td>
       <td>RM ${rent.monthly_rent}</td>
       <td>${rent.due_date}</td>
-      <td>${rent.agreement_url ? `<a href="${rent.agreement_url}" target="_blank">📄 View</a>` : '-'}</td>
       <td>${rent.contact}</td>
       <td>${rent.status || 'Active'}</td>
       <td><button onclick="deleteRent(${rent.id})">Delete</button></td>
@@ -209,5 +208,6 @@ async function deleteRent(id) {
     }
   }
 }
+
 
 
