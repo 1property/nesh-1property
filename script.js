@@ -163,59 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
   showPage('tablePage');
 });
 
-// 🚀 RENT FORM: Handle file upload for tenancy agreement
-const rentForm = document.getElementById('rentForm');
-if (rentForm) {
-  rentForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
 
-    const tenantName = document.getElementById('tenantName').value;
-    const propertyAddress = document.getElementById('propertyAddress').value;
-    const monthlyRent = document.getElementById('monthlyRent').value;
-    const rentDueDate = document.getElementById('rentDueDate').value;
-    const tenantContact = document.getElementById('tenantContact').value;
-    const fileInput = document.getElementById('agreementFile');
-
-    let agreementUrl = '';
-
-    if (fileInput && fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-      const filePath = `agreements/${Date.now()}_${file.name}`;
-
-      const { data: uploadData, error: uploadError } = await supabaseClient.storage
-        .from('agreements')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        alert('File upload error: ' + uploadError.message);
-        return;
-      }
-
-      const { data: publicUrl } = supabaseClient.storage.from('agreements').getPublicUrl(filePath);
-      agreementUrl = publicUrl.publicUrl;
-    }
-
-    const { error } = await supabaseClient.from(rentTableName).insert([
-      {
-        tenant_name: tenantName,
-        property_address: propertyAddress,
-        monthly_rent: monthlyRent,
-        due_date: rentDueDate,
-        agreement_url: agreementUrl,
-        contact: tenantContact,
-        status: 'Active'
-      }
-    ]);
-
-    if (error) {
-      alert('Failed to save rent info: ' + error.message);
-    } else {
-      alert('✅ Rent info saved!');
-      rentForm.reset();
-      fetchRentData();
-    }
-  });
-}
 
 // 🚀 FETCH AND DISPLAY RENT DATA
 async function fetchRentData() {
@@ -261,4 +209,5 @@ async function deleteRent(id) {
     }
   }
 }
+
 
