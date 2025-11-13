@@ -11,12 +11,10 @@
 </head>
 
 <body>
-  <!-- 🔐 Password protection script -->
+  <!-- Password protection -->
   <script>
-    const allowedPassword = "12345"; // Change this to your desired password
-    const entered = sessionStorage.getItem("crm_access");
-
-    if (!entered) {
+    const allowedPassword = "12345";
+    if (!sessionStorage.getItem("crm_access")) {
       const input = prompt("Enter password to access CRM:");
       if (input === allowedPassword) {
         sessionStorage.setItem("crm_access", "true");
@@ -34,16 +32,15 @@
   <!-- Navigation -->
   <nav>
     <a href="index.html">🏡 Home</a>
-    <button onclick="showPage('tablePage')">📋 View Listing</button>
+    <button onclick="showPage('tablePage')">📋 View Listings</button>
     <button onclick="showPage('formPage')">➕ Add Listings</button>
     <button onclick="showPage('rentPage')">💰 Rent Management</button>
   </nav>
 
-  <!-- Table Page -->
+  <!-- Buyer List Page -->
   <div id="tablePage" class="page">
     <h2 class="title">Buyer List</h2>
     <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
-
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
@@ -64,64 +61,56 @@
         <tbody id="data-table-body"></tbody>
       </table>
     </div>
+
+    <!-- 🔹 Seller List -->
+    <h2 class="title" style="margin-top: 50px;">Seller List</h2>
+    <div class="table-wrapper">
+      <table class="red-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="seller-table-body"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Form Page -->
+  <!-- Add / Edit Listing Form -->
   <div id="formPage" class="page" style="display: none;">
     <h2 class="title">Add / Edit Listings</h2>
     <form id="addForm">
       <input type="hidden" id="recordId" />
-
-      <label>Name:</label><br />
-      <input type="text" id="name" required /><br />
-
-      <label>Phone:</label><br />
-      <input type="text" id="phone" required /><br />
-
-      <label>Email:</label><br />
-      <input type="email" id="email" required /><br />
-
-      <label>Location:</label><br />
-      <input type="text" id="location" required /><br />
-
-      <label>Property:</label><br />
-      <input type="text" id="property" required /><br />
-
-      <label>Source:</label><br />
-      <input type="text" id="source" required /><br />
-
-      <label>Follow-Up:</label><br />
-      <input type="date" id="followUp" required /><br />
-
-      <label>Status:</label><br />
-      <input type="text" id="status" required /><br />
-
-      <label>Notes:</label><br />
-      <textarea id="notes" required></textarea><br />
-
+      <label>Name:</label><input type="text" id="name" required /><br />
+      <label>Phone:</label><input type="text" id="phone" required /><br />
+      <label>Email:</label><input type="email" id="email" required /><br />
+      <label>Location:</label><input type="text" id="location" required /><br />
+      <label>Property:</label><input type="text" id="property" required /><br />
+      <label>Source:</label><input type="text" id="source" required /><br />
+      <label>Follow-Up:</label><input type="date" id="followUp" /><br />
+      <label>Status:</label><input type="text" id="status" required /><br />
+      <label>Notes:</label><textarea id="notes"></textarea><br />
       <button type="submit">Save Listings</button>
     </form>
   </div>
 
-  <!-- Rent Management Page -->
+  <!-- Rent Management -->
   <div id="rentPage" class="page" style="display: none;">
     <h2 class="title">🏠 Rent Management</h2>
     <form id="rentForm">
-      <label>Tenant Name:</label><br />
-      <input type="text" id="tenantName" required /><br />
-
-      <label>Property Address:</label><br />
-      <input type="text" id="propertyAddress" required /><br />
-
-      <label>Monthly Rent (RM):</label><br />
-      <input type="number" id="monthlyRent" required /><br />
-
-      <label>Due Date:</label><br />
-      <input type="date" id="rentDueDate" required /><br />
-
-      <label>Tenant Contact:</label><br />
-      <input type="text" id="tenantContact" /><br />
-
+      <label>Tenant Name:</label><input type="text" id="tenantName" required /><br />
+      <label>Property Address:</label><input type="text" id="propertyAddress" required /><br />
+      <label>Monthly Rent (RM):</label><input type="number" id="monthlyRent" required /><br />
+      <label>Due Date:</label><input type="date" id="rentDueDate" required /><br />
+      <label>Tenant Contact:</label><input type="text" id="tenantContact" /><br />
       <button type="submit">Save Rent Info</button>
     </form>
 
@@ -144,5 +133,3 @@
   </div>
 </body>
 </html>
-
-
