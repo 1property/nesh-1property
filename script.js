@@ -1,30 +1,30 @@
-// Supabase Initialization
+// ==============================
+// 🔧 Supabase Initialization
+// ==============================
 const SUPABASE_URL = 'https://erabbaphqueanoddsoqh.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4';
-const tableName = 'callproperty';
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentEditingId = null; // Track the current editing ID
+// Tables
+const buyerTable = 'callproperty';
+const sellerTable = 'sellerproperty';
 
-// Fetch data from Supabase and populate the table
+let currentEditingId = null;
+
+// ==============================
+// 🏠 BUYER LISTING FUNCTIONS
+// ==============================
 async function fetchData(query = '') {
-  let { data, error } = await supabaseClient.from(tableName).select('*');
-
-  if (error) {
-    alert('❌ Failed to load data: ' + error.message);
-    return;
-  }
+  let { data, error } = await supabaseClient.from(buyerTable).select('*');
+  if (error) return alert('❌ Failed to load Buyer data: ' + error.message);
 
   if (query) {
-    // Filter the data based on the search query
-    data = data.filter((row) => {
-      return (
-        row.name.toLowerCase().includes(query.toLowerCase()) ||
-        row.location.toLowerCase().includes(query.toLowerCase()) ||
-        row.status.toLowerCase().includes(query.toLowerCase())
-      );
-    });
+    data = data.filter((row) =>
+      row.name.toLowerCase().includes(query.toLowerCase()) ||
+      row.location.toLowerCase().includes(query.toLowerCase()) ||
+      row.status.toLowerCase().includes(query.toLowerCase())
+    );
   }
 
   const tableBody = document.getElementById('data-table-body');
@@ -57,7 +57,6 @@ async function fetchData(query = '') {
   });
 }
 
-// Handle form submission for both adding and updating properties
 document.getElementById('addForm').addEventListener('submit', async function (e) {
   e.preventDefault();
 
@@ -70,101 +69,132 @@ document.getElementById('addForm').addEventListener('submit', async function (e)
     source: document.getElementById('source').value,
     followup: document.getElementById('followUp').value,
     status: document.getElementById('status').value,
-    notes: document.getElementById('notes').value
+    notes: document.getElementById('notes').value,
   };
 
   if (currentEditingId) {
-    // Update the existing record
-    const { error } = await supabaseClient.from(tableName).update(formData).eq('id', currentEditingId);
-    if (error) {
-      alert('❌ Failed to update: ' + error.message);
-    } else {
-      alert('✅ Property updated!');
-    }
-    currentEditingId = null; // Reset the current editing ID after update
+    const { error } = await supabaseClient.from(buyerTable).update(formData).eq('id', currentEditingId);
+    if (error) alert('❌ Failed to update: ' + error.message);
+    else alert('✅ Buyer updated!');
+    currentEditingId = null;
   } else {
-    // Insert a new property
-    const { error } = await supabaseClient.from(tableName).insert([formData]);
-    if (error) {
-      alert('❌ Failed to insert: ' + error.message);
-    } else {
-      alert('✅ Property added!');
-    }
+    const { error } = await supabaseClient.from(buyerTable).insert([formData]);
+    if (error) alert('❌ Failed to insert: ' + error.message);
+    else alert('✅ Buyer added!');
   }
 
-  resetForm(); // Reset form after adding or updating
-  fetchData(); // Refresh the table data
+  resetForm();
+  fetchData();
   showPage('tablePage');
 });
 
-// Reset form fields after add or update
 function resetForm() {
-  document.getElementById('name').value = '';
-  document.getElementById('phone').value = '';
-  document.getElementById('email').value = '';
-  document.getElementById('location').value = '';
-  document.getElementById('property').value = '';
-  document.getElementById('source').value = '';
-  document.getElementById('followUp').value = '';
-  document.getElementById('status').value = '';
-  document.getElementById('notes').value = '';
+  ['name', 'phone', 'email', 'location', 'property', 'source', 'followUp', 'status', 'notes']
+    .forEach((id) => (document.getElementById(id).value = ''));
 }
 
-// Edit property function
 async function editProperty(id) {
-  const { data, error } = await supabaseClient.from(tableName).select('*').eq('id', id).single();
+  const { data, error } = await supabaseClient.from(buyerTable).select('*').eq('id', id).single();
+  if (error) return alert('Error loading Buyer data: ' + error.message);
 
-  if (error) {
-    alert('Error loading data for editing: ' + error.message);
-    return;
-  }
-
-  // Populate form fields with the existing data
-  document.getElementById('name').value = data.name;
-  document.getElementById('phone').value = data.phone;
-  document.getElementById('email').value = data.email;
-  document.getElementById('location').value = data.location;
-  document.getElementById('property').value = data.property;
-  document.getElementById('source').value = data.source;
-  document.getElementById('followUp').value = data.followup;
-  document.getElementById('status').value = data.status;
-  document.getElementById('notes').value = data.notes;
-
-  currentEditingId = id; // Set the currentEditingId to the property being edited
+  Object.entries(data).forEach(([key, value]) => {
+    if (document.getElementById(key)) document.getElementById(key).value = value;
+  });
+  currentEditingId = id;
   showPage('formPage');
 }
 
-// Delete property function
 async function deleteProperty(id) {
-  const confirmDelete = confirm('Are you sure you want to delete this property?');
-  if (confirmDelete) {
-    const { error } = await supabaseClient.from(tableName).delete().eq('id', id);
-    if (error) {
-      alert('❌ Failed to delete: ' + error.message);
-    } else {
-      alert('✅ Property deleted!');
-      fetchData(); // Refresh the table data
+  if (confirm('Are you sure you want to delete this Buyer?')) {
+    const { error } = await supabaseClient.from(buyerTable).delete().eq('id', id);
+    if (error) alert('❌ Failed to delete: ' + error.message);
+    else {
+      alert('✅ Buyer deleted!');
+      fetchData();
     }
   }
 }
 
-// Search properties function
 function searchProperties() {
   const query = document.getElementById('searchInput').value;
-  fetchData(query); // Fetch data with search query
+  fetchData(query);
 }
 
-// Show the correct page (form or table)
-function showPage(pageId) {
-  document.querySelectorAll('.page').forEach((page) => {
-    page.style.display = 'none';
+// ==============================
+// 🧑‍💼 SELLER LISTING FUNCTIONS
+// ==============================
+async function fetchSellerData() {
+  const { data, error } = await supabaseClient.from(sellerTable).select('*');
+  if (error) return alert('❌ Failed to load Sellers: ' + error.message);
+
+  const sellerBody = document.getElementById('seller-table-body');
+  sellerBody.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    sellerBody.innerHTML = '<tr><td colspan="6">No sellers found.</td></tr>';
+    return;
+  }
+
+  data.forEach((row) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.name}</td>
+      <td>${row.phone}</td>
+      <td>${row.email}</td>
+      <td>${row.property}</td>
+      <td>${row.location}</td>
+      <td><button class="delete" onclick="deleteSeller(${row.id})">Delete</button></td>
+    `;
+    sellerBody.appendChild(tr);
   });
-  document.getElementById(pageId).style.display = 'block';
 }
 
-// Initialize the page on DOM content loaded
+async function addSeller(e) {
+  e.preventDefault();
+  const name = document.getElementById('sellerName').value;
+  const phone = document.getElementById('sellerPhone').value;
+  const email = document.getElementById('sellerEmail').value;
+  const property = document.getElementById('sellerProperty').value;
+  const location = document.getElementById('sellerLocation').value;
+
+  const { error } = await supabaseClient.from(sellerTable).insert([{ name, phone, email, property, location }]);
+  if (error) alert('❌ Failed to save seller: ' + error.message);
+  else {
+    alert('✅ Seller added!');
+    document.getElementById('sellerForm').reset();
+    fetchSellerData();
+  }
+}
+
+async function deleteSeller(id) {
+  if (confirm('Are you sure you want to delete this Seller?')) {
+    const { error } = await supabaseClient.from(sellerTable).delete().eq('id', id);
+    if (error) alert('❌ Failed to delete Seller: ' + error.message);
+    else {
+      alert('✅ Seller deleted!');
+      fetchSellerData();
+    }
+  }
+}
+
+// ==============================
+// 🔄 Page Navigation
+// ==============================
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach((page) => (page.style.display = 'none'));
+  document.getElementById(pageId).style.display = 'block';
+
+  if (pageId === 'sellerPage') fetchSellerData();
+  if (pageId === 'tablePage') fetchData();
+}
+
+// ==============================
+// 🚀 Initialize
+// ==============================
 document.addEventListener('DOMContentLoaded', () => {
-  fetchData(); // Load initial data
+  fetchData();
   showPage('tablePage');
+  const sellerForm = document.getElementById('sellerForm');
+  if (sellerForm) sellerForm.addEventListener('submit', addSeller);
 });
 
