@@ -32,12 +32,13 @@
   <!-- Navigation -->
   <nav>
     <a href="index.html">🏡 Home</a>
-    <button onclick="showPage('tablePage')">📋 View Listings</button>
-    <button onclick="showPage('formPage')">➕ Add Listings</button>
+    <button onclick="showPage('tablePage')">📋 Buyer List</button>
+    <button onclick="showPage('sellerPage')">🧾 Seller List</button>
+    <button onclick="showPage('formPage')">➕ Add Listing</button>
     <button onclick="showPage('rentPage')">💰 Rent Management</button>
   </nav>
 
-  <!-- Buyer List Page -->
+  <!-- 🟢 Buyer List Page -->
   <div id="tablePage" class="page">
     <h2 class="title">Buyer List</h2>
     <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
@@ -61,9 +62,11 @@
         <tbody id="data-table-body"></tbody>
       </table>
     </div>
+  </div>
 
-    <!-- 🔹 Seller List -->
-    <h2 class="title" style="margin-top: 50px;">Seller List</h2>
+  <!-- 🟡 Seller List Page -->
+  <div id="sellerPage" class="page" style="display: none;">
+    <h2 class="title">Seller List</h2>
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
@@ -84,7 +87,7 @@
     </div>
   </div>
 
-  <!-- Add / Edit Listing Form -->
+  <!-- 🟠 Add / Edit Listings -->
   <div id="formPage" class="page" style="display: none;">
     <h2 class="title">Add / Edit Listings</h2>
     <form id="addForm">
@@ -102,7 +105,7 @@
     </form>
   </div>
 
-  <!-- Rent Management -->
+  <!-- 🟣 Rent Management -->
   <div id="rentPage" class="page" style="display: none;">
     <h2 class="title">🏠 Rent Management</h2>
     <form id="rentForm">
@@ -131,5 +134,7 @@
       </table>
     </div>
   </div>
+
 </body>
 </html>
+
