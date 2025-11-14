@@ -4,6 +4,9 @@ const SUPABASE_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4';
 const tableName = 'callproperty';
 const sellerTable = 'sellers';
+// Rent table and storage bucket used for rent attachments
+const rentTable = 'rentinfo';
+const RENT_BUCKET = 'rent-attachments';
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -144,6 +147,103 @@ function resetForm() {
   document.getElementById('notes').value = '';
 }
 
+// Handle rent form submission: upload attachment to Supabase Storage and save rent record
+document.getElementById('rentForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const tenantName = document.getElementById('tenantName').value;
+  const propertyAddress = document.getElementById('propertyAddress').value;
+  const monthlyRent = document.getElementById('monthlyRent').value;
+  const rentDueDate = document.getElementById('rentDueDate').value;
+  const tenantContact = document.getElementById('tenantContact').value;
+  const fileInput = document.getElementById('rentAttachment');
+
+  let attachmentPath = null;
+
+  // Upload file if selected
+  if (fileInput && fileInput.files && fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const ext = file.name.split('.').pop();
+    const fileName = `rent_${Date.now()}.${ext}`;
+
+    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+      .from(RENT_BUCKET)
+      .upload(fileName, file);
+
+    if (uploadError) {
+      alert('❌ File upload failed: ' + uploadError.message + '\nMake sure the bucket "' + RENT_BUCKET + '" exists and is configured.');
+      return;
+    }
+
+    attachmentPath = uploadData?.path || null;
+  }
+
+  // Prepare rent record (adjust column names to match your DB schema)
+  const rentRecord = {
+    tenant_name: tenantName,
+    property_address: propertyAddress,
+    monthly_rent: monthlyRent,
+    due_date: rentDueDate,
+    tenant_contact: tenantContact,
+    attachment_path: attachmentPath,
+  };
+
+  const { error: insertError } = await supabaseClient.from(rentTable).insert([rentRecord]);
+  if (insertError) {
+    alert('❌ Failed to save rent record: ' + insertError.message);
+    return;
+  }
+
+  alert('✅ Rent information saved successfully.');
+  document.getElementById('rentForm').reset();
+  fetchRentData();
+});
+
+// Fetch rent records and populate rent table
+async function fetchRentData() {
+  const { data, error } = await supabaseClient.from(rentTable).select('*').order('id', { ascending: false });
+  const tbody = document.getElementById('rent-table-body');
+  if (error) {
+    console.error('Failed to fetch rents:', error.message);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7">Failed to load rent data.</td></tr>';
+    return;
+  }
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7">No rent records found.</td></tr>';
+    return;
+  }
+
+  data.forEach((row) => {
+    // Try to build a public URL for the attachment if present
+    let publicUrl = '';
+    if (row.attachment_path) {
+      try {
+        const res = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path);
+        publicUrl = res?.data?.publicUrl || res?.publicURL || '';
+      } catch (e) {
+        publicUrl = '';
+      }
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.tenant_name || ''}</td>
+      <td>${row.property_address || ''}</td>
+      <td>${row.monthly_rent || ''}</td>
+      <td>${row.due_date || ''}</td>
+      <td>${row.tenant_contact || ''}</td>
+      <td>${row.status || ''}</td>
+      <td>
+        ${publicUrl ? `<a href="${publicUrl}" target="_blank">Attachment</a>` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 // Edit property
 async function editProperty(id, tableUsed = tableName) {
   const { data, error } = await supabaseClient
@@ -208,6 +308,7 @@ function showPage(pageId) {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   fetchData();
+  fetchRentData();
   showPage('tablePage');
 });
 
