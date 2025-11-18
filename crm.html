@@ -22,7 +22,6 @@
       box-sizing:border-box;
     }
 
-    /* Brand / home link */
     .brand a{
       font-weight:600;
       font-size:1.05rem;
@@ -33,13 +32,12 @@
     }
 
     .nav-links{
-      display:flex; /* visible on wide screens */
+      display:flex;
       gap:8px;
       align-items:center;
       flex-wrap:wrap;
     }
 
-    /* Clear, accessible button style for nav items */
     .nav-links button,
     .nav-links a{
       background:#fff;
@@ -59,11 +57,9 @@
       transform:translateY(-1px);
       box-shadow:0 4px 12px rgba(0,0,0,0.08);
     }
-    .nav-links button:active{ transform:translateY(0); }
 
-    /* Hamburger toggle - hidden on large screens, shown on small screens */
     .nav-toggle{
-      display:none; /* hide by default on wide screens */
+      display:none;
       background:transparent;
       border:1px solid rgba(0,0,0,0.08);
       font-size:1.2rem;
@@ -74,17 +70,14 @@
       color:inherit;
     }
 
-    /* Collapse nav into toggle on small screens */
     @media (max-width: 700px){
       .navbar{ flex-direction:column; align-items:stretch; }
-      /* show toggle and align it to the left */
-      .nav-toggle{ display:block; align-self:flex-start; margin-left:0; margin-right:auto; }
+      .nav-toggle{ display:block; align-self:flex-start; }
       .nav-links{ display:none; flex-direction:column; gap:6px; width:100%; }
       .nav-links.open{ display:flex; }
-      .nav-links button, .nav-links a{ text-align:left; width:100%; }
+      .nav-links button, .nav-links a{ width:100%; text-align:left; }
     }
 
-    /* Small visual tweak for very small screens */
     @media (max-width: 420px){
       .nav-links button, .nav-links a{ padding:10px 12px; font-size:0.95rem; }
       .brand a{ font-size:0.95rem; }
@@ -129,8 +122,7 @@
       const btn = document.querySelector('.nav-toggle');
       if(!links || !btn) return;
       links.classList.toggle('open');
-      const expanded = links.classList.contains('open');
-      btn.setAttribute('aria-expanded', expanded);
+      btn.setAttribute('aria-expanded', links.classList.contains('open'));
     }
   </script>
 
@@ -186,8 +178,18 @@
   <!-- 🟠 Add / Edit Listings -->
   <div id="formPage" class="page" style="display: none;">
     <h2 class="title">Add / Edit Listings</h2>
+
     <form id="addForm">
       <input type="hidden" id="recordId" />
+
+      <!-- 🔥 Added Buyer/Seller Toggle Here -->
+      <label>Listing Type:</label>
+      <select id="listingType" required>
+        <option value="buyer">Buyer</option>
+        <option value="seller">Seller</option>
+      </select>
+      <br />
+
       <label>Name:</label><input type="text" id="name" required /><br />
       <label>Phone:</label><input type="text" id="phone" required /><br />
       <label>Email:</label><input type="email" id="email" required /><br />
@@ -197,6 +199,7 @@
       <label>Follow-Up:</label><input type="date" id="followUp" /><br />
       <label>Status:</label><input type="text" id="status" required /><br />
       <label>Notes:</label><textarea id="notes"></textarea><br />
+
       <button type="submit">Save Listings</button>
     </form>
   </div>
