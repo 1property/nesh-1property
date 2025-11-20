@@ -13,7 +13,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentEditingId = null;
 
-// 🔥 FETCH BUYER OR SELLER DATA
+// FETCH BUYERS OR SELLERS
 async function fetchData(query = '', table = tableName) {
   let { data, error } = await supabaseClient.from(table).select('*');
 
@@ -45,7 +45,24 @@ async function fetchData(query = '', table = tableName) {
 
   data.forEach((row) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
+
+    tr.innerHTML =
+      table === sellerTable
+        ? `
+      <td>${row.name}</td>
+      <td>${row.phone}</td>
+      <td>${row.email}</td>
+      <td>${row.location}</td>
+      <td>${row.property}</td>
+      <td>${row.source}</td>
+      <td>${row.selling_price || ''}</td>
+      <td>${row.status}</td>
+      <td>${row.notes}</td>
+      <td>
+        <button class="edit" onclick="editProperty(${row.id}, '${table}')">Edit</button>
+        <button class="delete" onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
+      </td>`
+        : `
       <td>${row.name}</td>
       <td>${row.phone}</td>
       <td>${row.email}</td>
@@ -55,34 +72,47 @@ async function fetchData(query = '', table = tableName) {
       <td>${row.followup || ''}</td>
       <td>${row.status}</td>
       <td>${row.notes}</td>
-
       <td>
         <button class="edit" onclick="editProperty(${row.id}, '${table}')">Edit</button>
         <button class="delete" onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
       </td>
-    `;
+      `;
+
     tableBody.appendChild(tr);
   });
 }
 
-// 🔥 ADD & UPDATE BUYER/SELLER
+// ADD & UPDATE BUYER/SELLER
 document.getElementById('addForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const listingType = document.getElementById('listingType').value;
   const selectedTable = listingType === 'seller' ? sellerTable : tableName;
 
-  const formData = {
-    name: document.getElementById('name').value,
-    phone: document.getElementById('phone').value,
-    email: document.getElementById('email').value,
-    location: document.getElementById('location').value,
-    property: document.getElementById('property').value,
-    source: document.getElementById('source').value,
-    followup: document.getElementById('followUp').value,
-    status: document.getElementById('status').value,
-    notes: document.getElementById('notes').value,
-  };
+  const formData =
+    listingType === 'seller'
+      ? {
+          name: name.value,
+          phone: phone.value,
+          email: email.value,
+          location: location.value,
+          property: property.value,
+          source: source.value,
+          selling_price: followUp.value, // using same input but renamed meaning
+          status: status.value,
+          notes: notes.value
+        }
+      : {
+          name: name.value,
+          phone: phone.value,
+          email: email.value,
+          location: location.value,
+          property: property.value,
+          source: source.value,
+          followup: followUp.value,
+          status: status.value,
+          notes: notes.value
+        };
 
   let error;
 
@@ -93,14 +123,8 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
       .eq('id', currentEditingId));
 
     currentEditingId = null;
-
-    if (!error) alert(`✅ ${listingType} updated successfully!`);
   } else {
-    ({ error } = await supabaseClient
-      .from(selectedTable)
-      .insert([formData]));
-
-    if (!error) alert(`✅ ${listingType} added successfully!`);
+    ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
   if (error) {
@@ -110,7 +134,6 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
 
   resetForm();
 
-  // 🔥 Correct page after save
   if (listingType === 'seller') {
     fetchData('', sellerTable);
     showPage('sellerPage');
@@ -120,12 +143,12 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   }
 });
 
-// 🔥 RESET FORM
+// RESET FORM
 function resetForm() {
   document.getElementById('addForm').reset();
 }
 
-// 🔥 EDIT
+// EDIT
 async function editProperty(id, tableUsed) {
   const { data, error } = await supabaseClient
     .from(tableUsed)
@@ -138,24 +161,29 @@ async function editProperty(id, tableUsed) {
     return;
   }
 
-  document.getElementById('name').value = data.name;
-  document.getElementById('phone').value = data.phone;
-  document.getElementById('email').value = data.email;
-  document.getElementById('location').value = data.location;
-  document.getElementById('property').value = data.property;
-  document.getElementById('source').value = data.source;
-  document.getElementById('followUp').value = data.followup;
-  document.getElementById('status').value = data.status;
-  document.getElementById('notes').value = data.notes;
+  name.value = data.name;
+  phone.value = data.phone;
+  email.value = data.email;
+  location.value = data.location;
+  property.value = data.property;
+  source.value = data.source;
 
-  document.getElementById('listingType').value =
-    tableUsed === sellerTable ? 'seller' : 'buyer';
+  if (tableUsed === sellerTable) {
+    followUp.value = data.selling_price || '';
+    listingType.value = 'seller';
+  } else {
+    followUp.value = data.followup || '';
+    listingType.value = 'buyer';
+  }
+
+  status.value = data.status;
+  notes.value = data.notes;
 
   currentEditingId = id;
   showPage('formPage');
 }
 
-// 🔥 DELETE
+// DELETE
 async function deleteProperty(id, tableUsed) {
   if (!confirm("Delete this?")) return;
 
@@ -169,24 +197,22 @@ async function deleteProperty(id, tableUsed) {
     return;
   }
 
-  alert("✅ Deleted!");
-
   fetchData('', tableUsed);
 }
 
-// 🔥 SEARCH
+// SEARCH
 function searchProperties() {
-  const q = document.getElementById('searchInput').value;
+  const q = searchInput.value;
   fetchData(q, tableName);
 }
 
-// 🔥 PAGE SWITCHER
+// PAGE SWITCHER
 function showPage(pageId) {
   document.querySelectorAll('.page').forEach((p) => (p.style.display = 'none'));
   document.getElementById(pageId).style.display = 'block';
 }
 
-// 🔥 INIT
+// INIT
 document.addEventListener('DOMContentLoaded', () => {
   fetchData();
   fetchData('', sellerTable);
