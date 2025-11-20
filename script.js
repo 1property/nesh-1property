@@ -55,7 +55,7 @@ async function fetchData(query = '', table = tableName) {
       <td>${row.location}</td>
       <td>${row.property}</td>
       <td>${row.source}</td>
-      <td>${row.selling_price || ''}</td>
+      <td>${row.followup || ''}</td>
       <td>${row.status}</td>
       <td>${row.notes}</td>
       <td>
@@ -89,30 +89,18 @@ document.getElementById('addForm').addEventListener('submit', async (e) => {
   const listingType = document.getElementById('listingType').value;
   const selectedTable = listingType === 'seller' ? sellerTable : tableName;
 
-  const formData =
-    listingType === 'seller'
-      ? {
-          name: name.value,
-          phone: phone.value,
-          email: email.value,
-          location: location.value,
-          property: property.value,
-          source: source.value,
-          selling_price: followUp.value, // using same input but renamed meaning
-          status: status.value,
-          notes: notes.value
-        }
-      : {
-          name: name.value,
-          phone: phone.value,
-          email: email.value,
-          location: location.value,
-          property: property.value,
-          source: source.value,
-          followup: followUp.value,
-          status: status.value,
-          notes: notes.value
-        };
+  // 🔥 BOTH buyer & seller use followUp field
+  const formData = {
+    name: name.value,
+    phone: phone.value,
+    email: email.value,
+    location: location.value,
+    property: property.value,
+    source: source.value,
+    followup: followUp.value, // SAME for both now
+    status: status.value,
+    notes: notes.value
+  };
 
   let error;
 
@@ -168,13 +156,10 @@ async function editProperty(id, tableUsed) {
   property.value = data.property;
   source.value = data.source;
 
-  if (tableUsed === sellerTable) {
-    followUp.value = data.selling_price || '';
-    listingType.value = 'seller';
-  } else {
-    followUp.value = data.followup || '';
-    listingType.value = 'buyer';
-  }
+  // 🔥 BOTH seller + buyer use followup only
+  followUp.value = data.followup || '';
+
+  listingType.value = tableUsed === sellerTable ? 'seller' : 'buyer';
 
   status.value = data.status;
   notes.value = data.notes;
