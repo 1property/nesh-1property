@@ -103,7 +103,8 @@
       <button onclick="showPage('tablePage')">📋 Buyer List</button>
       <button onclick="showPage('sellerPage')">🧾 Seller List</button>
       <button onclick="showPage('formPage')">➕ Add Listing</button>
-      <button onclick="showPage('rentPage')">💰 Rent Management</button>
+      <button onclick="showPage('rentPage')">💰 Renter List</button>
+      <button onclick="showPage('addRentPage')">💰 Add Renter</button>
     </div>
   </nav>
 
@@ -193,8 +194,8 @@
     </form>
   </div>
 
-  <!-- RENT PAGE -->
-  <div id="rentPage" class="page" style="display:none;">
+  <!-- ADD/EDIT RENT PAGE -->
+  <div id="addRentPage" class="page" style="display:none;">
     <h2 class="title">🏠 Rent Management</h2>
 
     <form id="rentForm">
@@ -206,7 +207,12 @@
       <label>Attachment:</label><input type="file" id="rentAttachment" accept="image/*,application/pdf" /><br />
       <button type="submit">Save Rent Info</button>
     </form>
+  </div>
 
+  <!-- RENT LISTING -->
+  <div id="rentPage" class="page" style="display:none;">
+    <h2 class="title">Renter List</h2>
+    <input type="text" id="searchInput" placeholder="Search by Name, Property, or Status" oninput="searchProperties()" />
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
@@ -217,6 +223,7 @@
             <th>Due Date</th>
             <th>Contact</th>
             <th>Status</th>
+            <th>Attachment</th>
             <th>Actions</th>
           </tr>
         </thead>
