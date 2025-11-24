@@ -8,15 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 
-  <!-- 🔥 AUTO-REFRESH script.js (cache-proof) -->
-  <script>
-    const cacheBuster = Date.now();
-    const scriptEl = document.createElement("script");
-    scriptEl.src = "script.js?cb=" + cacheBuster;
-    scriptEl.defer = true;
-    document.head.appendChild(scriptEl);
-  </script>
-
   <style>
     .navbar{
       display:flex;
@@ -222,6 +213,15 @@
       </table>
     </div>
   </div>
+
+  <!-- 🔥 Auto-load latest script.js AFTER HTML is ready -->
+  <script>
+    (function () {
+      const s = document.createElement("script");
+      s.src = "script.js?cb=" + Date.now();
+      document.body.appendChild(s);
+    })();
+  </script>
 
 </body>
 </html>
