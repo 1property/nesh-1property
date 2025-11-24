@@ -214,7 +214,10 @@
     </div>
   </div>
 
-  <!-- 🔥 Auto-load latest script.js AFTER HTML is ready -->
+  <!-- Load Supabase CDN (required!) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <!-- Auto-load script.js AFTER HTML loads -->
   <script>
     (function () {
       const s = document.createElement("script");
@@ -225,5 +228,4 @@
 
 </body>
 </html>
-
 
