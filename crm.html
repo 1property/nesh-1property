@@ -4,86 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Real Estate CRM</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="script.js" defer></script>
   <link rel="stylesheet" href="style.css" />
 
+  <!-- 🔥 AUTO-REFRESH script.js (cache-proof) -->
+  <script>
+    const cacheBuster = Date.now();
+    const scriptEl = document.createElement("script");
+    scriptEl.src = "script.js?cb=" + cacheBuster;
+    scriptEl.defer = true;
+    document.head.appendChild(scriptEl);
+  </script>
+
   <style>
-    .navbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 8px 16px;
-      box-sizing: border-box;
+    .navbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      width:100%;
+      max-width:1100px;
+      margin:0 auto;
+      padding:8px 16px;
+      box-sizing:border-box;
     }
-    .brand a {
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: inherit;
-      text-decoration: none;
-      padding: 6px 8px;
-      border-radius: 6px;
+    .brand a{
+      font-weight:600;
+      font-size:1.05rem;
+      color:inherit;
+      text-decoration:none;
+      padding:6px 8px;
+      border-radius:6px;
     }
-    .nav-links {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
+    .nav-links{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
     }
     .nav-links button,
-    .nav-links a {
-      background: #fff;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      padding: 8px 12px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.95rem;
-      color: #333;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: all 0.15s ease-in-out;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    .nav-links a{
+      background:#fff;
+      border:1px solid rgba(0,0,0,0.08);
+      padding:8px 12px;
+      cursor:pointer;
+      font-family:inherit;
+      font-size:0.95rem;
+      color:#333;
+      text-decoration:none;
+      border-radius:8px;
+      transition:all 0.15s ease-in-out;
+      box-shadow:0 1px 2px rgba(0,0,0,0.03);
     }
     .nav-links button:hover,
-    .nav-links a:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    .nav-links a:hover{
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
     }
-    .nav-toggle {
-      display: none;
-      background: transparent;
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 6px;
-      line-height: 1;
-      color: inherit;
+    .nav-toggle{
+      display:none;
+      background:transparent;
+      border:1px solid rgba(0,0,0,0.08);
+      font-size:1.2rem;
+      cursor:pointer;
+      padding:6px 10px;
+      border-radius:6px;
+      line-height:1;
+      color:inherit;
     }
-
-    @media (max-width: 700px) {
-      .navbar { flex-direction: column; align-items: stretch; }
-      .nav-toggle { display: block; align-self: flex-start; }
-      .nav-links { display: none; flex-direction: column; gap: 6px; width: 100%; }
-      .nav-links.open { display: flex; }
-      .nav-links button, .nav-links a { width: 100%; text-align: left; }
+    @media (max-width: 700px){
+      .navbar{ flex-direction:column; align-items:stretch; }
+      .nav-toggle{ display:block; align-self:flex-start; }
+      .nav-links{ display:none; flex-direction:column; gap:6px; width:100%; }
+      .nav-links.open{ display:flex; }
+      .nav-links button, .nav-links a{ width:100%; text-align:left; }
     }
-
-    @media (max-width: 420px) {
-      .nav-links button, .nav-links a { padding: 10px 12px; font-size: 0.95rem; }
-      .brand a { font-size: 0.95rem; }
+    @media (max-width: 420px){
+      .nav-links button, .nav-links a{ padding:10px 12px; font-size:0.95rem; }
+      .brand a{ font-size:0.95rem; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- PASSWORD PROTECT PAGE -->
+  <!-- Password Protect -->
   <script>
     const allowedPassword = "12345";
     if (!sessionStorage.getItem("crm_access")) {
@@ -101,10 +107,9 @@
     <h1>Real Estate CRM System</h1>
   </header>
 
-  <!-- NAVIGATION -->
+  <!-- NAVBAR -->
   <nav class="navbar">
     <div class="brand"><a href="index.html">🏡 Home</a></div>
-
     <button class="nav-toggle" onclick="toggleNav()">☰</button>
 
     <div class="nav-links" id="navLinks">
@@ -117,7 +122,7 @@
   </nav>
 
   <script>
-    function toggleNav() {
+    function toggleNav(){
       const links = document.getElementById('navLinks');
       const btn = document.querySelector('.nav-toggle');
       links.classList.toggle('open');
@@ -125,27 +130,16 @@
     }
   </script>
 
-  <!-- BUYER PAGE -->
+  <!-- BUYER LIST -->
   <div id="tablePage" class="page">
     <h2 class="title">Buyer List</h2>
-
     <input type="text" id="searchInput" placeholder="Search by Name, Location, or Status" oninput="searchProperties()" />
-
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Location</th>
-            <th>Property</th>
-            <th>Source</th>
-            <th>Follow-Up</th>
-            <th>Status</th>
-            <th>Notes</th>
-            <th>Next Follow-Up</th>
-            <th>Actions</th>
+            <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
+            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th><th>Next Follow-Up</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="data-table-body"></tbody>
@@ -153,24 +147,15 @@
     </div>
   </div>
 
-  <!-- SELLER PAGE -->
+  <!-- SELLER LIST -->
   <div id="sellerPage" class="page" style="display:none;">
     <h2 class="title">Seller List</h2>
-
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Location</th>
-            <th>Property</th>
-            <th>Source</th>
-            <th>Follow-Up</th>
-            <th>Status</th>
-            <th>Notes</th>
-            <th>Actions</th>
+            <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
+            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="seller-table-body"></tbody>
@@ -178,7 +163,7 @@
     </div>
   </div>
 
-  <!-- ADD / EDIT PAGE -->
+  <!-- ADD / EDIT LISTING -->
   <div id="formPage" class="page" style="display:none;">
     <h2 class="title">Add / Edit Listings</h2>
 
@@ -205,7 +190,7 @@
     </form>
   </div>
 
-  <!-- ADD RENT PAGE -->
+  <!-- ADD RENT -->
   <div id="addRentPage" class="page" style="display:none;">
     <h2 class="title">🏠 Rent Management</h2>
 
@@ -221,24 +206,16 @@
     </form>
   </div>
 
-  <!-- RENT RECORD PAGE -->
+  <!-- RENT LIST -->
   <div id="rentPage" class="page" style="display:none;">
     <h2 class="title">Renter List</h2>
-
     <input type="text" id="searchRent" placeholder="Search by Name, Property, or Status" oninput="searchProperties()" />
-
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
           <tr>
-            <th>Tenant Name</th>
-            <th>Property</th>
-            <th>Rent (RM)</th>
-            <th>Due Date</th>
-            <th>Contact</th>
-            <th>Status</th>
-            <th>Attachment</th>
-            <th>Actions</th>
+            <th>Tenant Name</th><th>Property</th><th>Rent (RM)</th><th>Due Date</th>
+            <th>Contact</th><th>Status</th><th>Attachment</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="rent-table-body"></tbody>
@@ -248,6 +225,5 @@
 
 </body>
 </html>
-
 
 
