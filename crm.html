@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Real Estate CRM</title>
 
-  <!-- ✅ LOAD SUPABASE FIRST (REQUIRED!) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -32,98 +31,14 @@
       padding:6px 8px;
       border-radius:6px;
     }
-    .nav-links{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .nav-links button,
-    .nav-links a{
-      background:#fff;
-      border:1px solid rgba(0,0,0,0.08);
-      padding:8px 12px;
-      cursor:pointer;
-      font-family:inherit;
-      font-size:0.95rem;
-      color:#333;
-      text-decoration:none;
-      border-radius:8px;
-      transition:all 0.15s ease-in-out;
-      box-shadow:0 1px 2px rgba(0,0,0,0.03);
-    }
-    .nav-links button:hover,
-    .nav-links a:hover{
-      transform:translateY(-1px);
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    }
-    .nav-toggle{
-      display:none;
-      background:transparent;
-      border:1px solid rgba(0,0,0,0.08);
-      font-size:1.2rem;
-      cursor:pointer;
-      padding:6px 10px;
-      border-radius:6px;
-      line-height:1;
-      color:inherit;
-    }
-    @media (max-width: 700px){
-      .navbar{ flex-direction:column; align-items:stretch; }
-      .nav-toggle{ display:block; align-self:flex-start; }
-      .nav-links{ display:none; flex-direction:column; gap:6px; width:100%; }
-      .nav-links.open{ display:flex; }
-      .nav-links button, .nav-links a{ width:100%; text-align:left; }
-    }
-    @media (max-width: 420px){
-      .nav-links button, .nav-links a{ padding:10px 12px; font-size:0.95rem; }
-      .brand a{ font-size:0.95rem; }
-    }
   </style>
 </head>
 
 <body>
 
-  <!-- Password Protect -->
-  <script>
-    const allowedPassword = "12345";
-    if (!sessionStorage.getItem("crm_access")) {
-      const input = prompt("Enter password to access CRM:");
-      if (input === allowedPassword) {
-        sessionStorage.setItem("crm_access", "true");
-      } else {
-        alert("Wrong password! Redirecting to Home.");
-        window.location.href = "index.html";
-      }
-    }
-  </script>
-
   <header>
     <h1>Real Estate CRM System</h1>
   </header>
-
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="brand"><a href="index.html">🏡 Home</a></div>
-    <button class="nav-toggle" onclick="toggleNav()">☰</button>
-
-    <div class="nav-links" id="navLinks">
-      <button onclick="showPage('tablePage')">📋 Buyer List</button>
-      <button onclick="showPage('sellerPage')">🧾 Seller List</button>
-      <button onclick="showPage('formPage')">➕ Add Listing</button>
-      <button onclick="showPage('rentPage')">💰 Renter List</button>
-      <button onclick="showPage('addRentPage')">💰 Add Renter</button>
-    </div>
-  </nav>
-
-  <script>
-    function toggleNav(){
-      const links = document.getElementById('navLinks');
-      const btn = document.querySelector('.nav-toggle');
-      links.classList.toggle('open');
-      btn.setAttribute('aria-expanded', links.classList.contains('open'));
-    }
-  </script>
 
   <!-- BUYER LIST -->
   <div id="tablePage" class="page">
@@ -134,7 +49,7 @@
         <thead>
           <tr>
             <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
-            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th><th>Next Follow-Up</th><th>Actions</th>
+            <th>Source</th><th>followup</th><th>Status</th><th>Notes</th><th>followup</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="data-table-body"></tbody>
@@ -150,7 +65,7 @@
         <thead>
           <tr>
             <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
-            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th><th>Actions</th>
+            <th>Source</th><th>followup</th><th>Status</th><th>Notes</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="seller-table-body"></tbody>
@@ -177,7 +92,10 @@
       <label>Location:</label><input type="text" id="location" required /><br />
       <label>Property:</label><input type="text" id="property" required /><br />
       <label>Source:</label><input type="text" id="source" required /><br />
-      <label>Follow-Up:</label><input type="date" id="followUp" /><br />
+
+      <!-- CHANGED HERE -->
+      <label>followup:</label><input type="date" id="followUp" /><br />
+
       <label>Status:</label><input type="text" id="status" required /><br />
       <label>Notes:</label><textarea id="notes"></textarea><br />
 
@@ -188,7 +106,6 @@
   <!-- ADD RENT -->
   <div id="addRentPage" class="page" style="display:none;">
     <h2 class="title">🏠 Rent Management</h2>
-
     <form id="rentForm">
       <label>Tenant Name:</label><input type="text" id="tenantName" required /><br />
       <label>Property Address:</label><input type="text" id="propertyAddress" required /><br />
@@ -204,7 +121,7 @@
   <!-- RENT LIST -->
   <div id="rentPage" class="page" style="display:none;">
     <h2 class="title">Renter List</h2>
-    <input type="text" id="searchRent" placeholder="Search by Name, Property, or Status" oninput="searchProperties()" />
+
     <div class="table-wrapper">
       <table class="red-table">
         <thead>
@@ -218,19 +135,10 @@
     </div>
   </div>
 
-  <!-- The function logic is not working, please review this. -->
-  <!-- Auto-load script.js AFTER Supabase + HTML -->
-  <!-- <script>
-    (function () {
-      const s = document.createElement("script");
-      s.src = "script.js?cb=" + Date.now();
-      document.body.appendChild(s);
-    })();
-  </script> -->
-  <!-- temporary fix, unless the above func is not required anymore -->
   <script src="script.js" defer></script> 
 
 </body>
 </html>
+
 
 
