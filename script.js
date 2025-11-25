@@ -1,60 +1,51 @@
- *************************************************************
- *  SUPABASE INITIALIZATION
- *************************************************************/
+// Supabase Initialization
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
 
-const BUYER_TABLE = "callproperty";
-const SELLER_TABLE = "sellers";
-const RENT_TABLE = "rentinfo";
-const RENT_BUCKET = "rent-attachments";
-
-// NEW FIX: Always use supabase.createClient to avoid undefined
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentEditingId = null;
+const BUYER_TABLE = "callproperty";
+const SELLER_TABLE = "sellers";
 
+// Load data
+document.addEventListener("DOMContentLoaded", () => {
+  fetchData("", BUYER_TABLE);
+  fetchData("", SELLER_TABLE);
+  fetchRentData?.();
+  showPage("tablePage");
+});
 
-/*************************************************************
- *  FETCH BUYER / SELLER
- *************************************************************/
+// Fetch Data
 async function fetchData(query = "", table = BUYER_TABLE) {
-  const { data, error } = await supabaseClient.from(table).select("*").order("id", { ascending: false });
+  let { data, error } = await supabaseClient.from(table).select("*");
 
   if (error) {
     console.error(error);
-    alert("❌ Failed to load data: " + error.message);
     return;
   }
 
-  let filtered = data;
-
-  // SEARCH
   if (query) {
-    const q = query.toLowerCase();
-    filtered = data.filter((row) =>
-      (row.name || "").toLowerCase().includes(q) ||
-      (row.location || "").toLowerCase().includes(q) ||
-      (row.status || "").toLowerCase().includes(q)
+    data = data.filter(r =>
+      (r.name || "").toLowerCase().includes(query.toLowerCase()) ||
+      (r.location || "").toLowerCase().includes(query.toLowerCase()) ||
+      (r.status || "").toLowerCase().includes(query.toLowerCase())
     );
   }
 
-  const tableBody =
-    table === SELLER_TABLE
-      ? document.getElementById("seller-table-body")
-      : document.getElementById("data-table-body");
+  const tableBody = table === SELLER_TABLE
+    ? document.getElementById("seller-table-body")
+    : document.getElementById("data-table-body");
 
   tableBody.innerHTML = "";
 
-  if (!filtered.length) {
-    tableBody.innerHTML = `<tr><td colspan="11">No records found</td></tr>`;
+  if (!data.length) {
+    tableBody.innerHTML = `<tr><td colspan="10">No Records Found</td></tr>`;
     return;
   }
 
-  filtered.forEach((row) => {
+  data.forEach(row => {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -65,21 +56,16 @@ async function fetchData(query = "", table = BUYER_TABLE) {
       <td>${row.followup || ""}</td>
       <td>${row.status || ""}</td>
       <td>${row.notes || ""}</td>
-      <td>${row.next_followup || ""}</td>
       <td>
         <button onclick="editProperty(${row.id}, '${table}')">Edit</button>
         <button onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
       </td>
     `;
-
     tableBody.appendChild(tr);
   });
 }
 
-
-/*************************************************************
- *  ADD / EDIT BUYER + SELLER
- *************************************************************/
+// Add or Update record
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -87,26 +73,26 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   const selectedTable = listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
   const formData = {
-    name: name.value,
-    phone: phone.value,
-    email: email.value,
-    location: location.value,
-    property: property.value,
-    source: source.value,
-    followup: followup.value,
-    status: status.value,
-    notes: notes.value,
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    email: document.getElementById("email").value,
+    location: document.getElementById("location").value,
+    property: document.getElementById("property").value,
+    source: document.getElementById("source").value,
+    followup: document.getElementById("followUp").value,
+    status: document.getElementById("status").value,
+    notes: document.getElementById("notes").value
   };
 
   let error;
 
-  if (currentEditingId) {
-    ({ error } = await supabaseClient.from(selectedTable)
-      .update(formData).eq("id", currentEditingId));
-    currentEditingId = null;
+  if (recordId.value) {
+    ({ error } = await supabaseClient
+      .from(selectedTable)
+      .update(formData)
+      .eq("id", recordId.value));
   } else {
-    ({ error } = await supabaseClient.from(selectedTable)
-      .insert([formData]));
+    ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
   if (error) {
@@ -114,20 +100,13 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  resetForm();
+  recordId.value = "";
+  document.getElementById("addForm").reset();
   fetchData("", selectedTable);
-  showPage(selectedTable === SELLER_TABLE ? "sellerPage" : "tablePage");
+  showPage(listingType === "seller" ? "sellerPage" : "tablePage");
 });
 
-
-function resetForm() {
-  document.getElementById("addForm").reset();
-}
-
-
-/*************************************************************
- *  EDIT BUYER/SELLER
- *************************************************************/
+// Edit record
 async function editProperty(id, tableUsed) {
   const { data, error } = await supabaseClient
     .from(tableUsed)
@@ -136,29 +115,26 @@ async function editProperty(id, tableUsed) {
     .single();
 
   if (error) {
-    alert("❌ Error loading record: " + error.message);
+    alert("❌ Error loading: " + error.message);
     return;
   }
 
-  name.value = data.name;
-  phone.value = data.phone;
-  email.value = data.email;
-  location.value = data.location;
-  property.value = data.property;
-  source.value = data.source;
-  followup.value = data.followup;
-  status.value = data.status;
-  notes.value = data.notes;
-  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
+  recordId.value = id;
+  document.getElementById("name").value = data.name || "";
+  document.getElementById("phone").value = data.phone || "";
+  document.getElementById("email").value = data.email || "";
+  document.getElementById("location").value = data.location || "";
+  document.getElementById("property").value = data.property || "";
+  document.getElementById("source").value = data.source || "";
+  document.getElementById("followUp").value = data.followup || "";
+  document.getElementById("status").value = data.status || "";
+  document.getElementById("notes").value = data.notes || "";
 
-  currentEditingId = id;
+  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
   showPage("formPage");
 }
 
-
-/*************************************************************
- *  DELETE BUYER/SELLER
- *************************************************************/
+// Delete
 async function deleteProperty(id, tableUsed) {
   if (!confirm("Delete this record?")) return;
 
@@ -175,214 +151,11 @@ async function deleteProperty(id, tableUsed) {
   fetchData("", tableUsed);
 }
 
-
-/*************************************************************
- * SEARCH
- *************************************************************/
-function searchProperties() {
-  fetchData(searchInput.value, BUYER_TABLE);
-}
-
-
-/*************************************************************
- * PAGE SWITCH
- *************************************************************/
+// Page switcher
 function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   document.getElementById(pageId).style.display = "block";
 }
-
-
-/*************************************************************
- * INITIAL LOAD
- *************************************************************/
-document.addEventListener("DOMContentLoaded", () => {
-  fetchData();
-  fetchData("", SELLER_TABLE);
-  fetchRentData();
-  showPage("tablePage");
-});
-
-
-/*************************************************************
- * RENT SECTION
- *************************************************************/
-async function fetchRentData() {
-  const tbody = document.getElementById("rent-table-body");
-  if (!tbody) return;
-
-  const { data, error } = await supabaseClient
-    .from(RENT_TABLE)
-    .select("*")
-    .order("id", { ascending: false });
-
-  if (error) {
-    tbody.innerHTML = '<tr><td colspan="8">Failed to load rent data</td></tr>';
-    return;
-  }
-
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="8">No rent records found</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = "";
-
-  data.forEach((row) => {
-    const tr = document.createElement("tr");
-
-    let due = row.due_date || row.rent_due_date || "";
-
-    let attachmentHtml = "";
-    if (row.attachment_path) {
-      const url = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
-      attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
-    }
-
-    tr.innerHTML = `
-      <td>${row.tenant_name || ""}</td>
-      <td>${row.property_address || ""}</td>
-      <td>${row.monthly_rent || ""}</td>
-      <td>${due}</td>
-      <td>${row.tenant_contact || ""}</td>
-      <td>${row.status || ""}</td>
-      <td>${attachmentHtml}</td>
-      <td>
-        <button onclick="editRent(${row.id})">Edit</button>
-        <button onclick="deleteRent(${row.id})">Delete</button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-}
-
-
-/*************************************************************
- * ADD / UPDATE RENT
- *************************************************************/
-document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const tenantName = tenantName.value;
-  const propertyAddress = propertyAddress.value;
-  const monthlyRent = monthlyRent.value;
-  const rentDueDate = rentDueDate.value;
-  const tenantContact = tenantContact.value;
-
-  let attachmentPath = null;
-  const fileInput = document.getElementById("rentAttachment");
-
-  if (fileInput && fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    const safeName = "rent_" + Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-
-    const upload = await supabaseClient.storage
-      .from(RENT_BUCKET)
-      .upload(safeName, file);
-
-    if (upload.error) {
-      alert("❌ Failed to upload attachment");
-      return;
-    }
-
-    attachmentPath = upload.data.path;
-  }
-
-  const rentRecord = {
-    tenant_name: tenantName,
-    property_address: propertyAddress,
-    monthly_rent: monthlyRent,
-    due_date: rentDueDate,
-    tenant_contact: tenantContact,
-    attachment_path: attachmentPath,
-  };
-
-  const editEl = document.getElementById("rentEditId");
-
-  if (editEl && editEl.value) {
-    const { error } = await supabaseClient
-      .from(RENT_TABLE)
-      .update(rentRecord)
-      .eq("id", editEl.value);
-
-    if (error) {
-      alert("❌ Failed to update rent record");
-      return;
-    }
-
-    editEl.remove();
-  } else {
-    const { error } = await supabaseClient
-      .from(RENT_TABLE)
-      .insert([rentRecord]);
-
-    if (error) {
-      alert("❌ Failed to save rent");
-      return;
-    }
-  }
-
-  document.getElementById("rentForm").reset();
-  fetchRentData();
-  showPage("rentPage");
-});
-
-
-/*************************************************************
- * EDIT RENT
- *************************************************************/
-async function editRent(id) {
-  const { data, error } = await supabaseClient
-    .from(RENT_TABLE)
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    alert("❌ Failed to load rent record");
-    return;
-  }
-
-  tenantName.value = data.tenant_name;
-  propertyAddress.value = data.property_address;
-  monthlyRent.value = data.monthly_rent;
-  rentDueDate.value = data.due_date;
-  tenantContact.value = data.tenant_contact;
-
-  let hidden = document.getElementById("rentEditId");
-  if (!hidden) {
-    hidden = document.createElement("input");
-    hidden.type = "hidden";
-    hidden.id = "rentEditId";
-    document.getElementById("rentForm").appendChild(hidden);
-  }
-  hidden.value = id;
-
-  showPage("addRentPage");
-}
-
-
-/*************************************************************
- * DELETE RENT
- *************************************************************/
-async function deleteRent(id) {
-  if (!confirm("Delete this rent record?")) return;
-
-  const { error } = await supabaseClient
-    .from(RENT_TABLE)
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("❌ Failed to delete rent record");
-    return;
-  }
-
-  fetchRentData();
-}
-
-
 
 
 
