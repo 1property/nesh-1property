@@ -1,4 +1,4 @@
-/*************************************************************
+ *************************************************************
  *  SUPABASE INITIALIZATION
  *************************************************************/
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
@@ -381,6 +381,7 @@ async function deleteRent(id) {
 
   fetchRentData();
 }
+
 
 
 
