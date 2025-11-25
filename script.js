@@ -8,7 +8,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const BUYER_TABLE = "callproperty";
 const SELLER_TABLE = "sellers";
 
-// Load data
+// Load data on start
 document.addEventListener("DOMContentLoaded", () => {
   fetchData("", BUYER_TABLE);
   fetchData("", SELLER_TABLE);
@@ -87,13 +87,11 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   let error;
 
   if (recordId.value) {
-    // Update
     ({ error } = await supabaseClient
       .from(selectedTable)
       .update(formData)
       .eq("id", recordId.value));
   } else {
-    // Insert
     ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
@@ -108,7 +106,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
   showPage(listingType === "seller" ? "sellerPage" : "tablePage");
 });
 
-// Edit record
+// Edit record (FIXED followUp.value)
 async function editProperty(id, tableUsed) {
   const { data, error } = await supabaseClient
     .from(tableUsed)
@@ -128,7 +126,10 @@ async function editProperty(id, tableUsed) {
   location.value = data.location || "";
   property.value = data.property || "";
   source.value = data.source || "";
-  followup.value = data.followup || "";
+
+  // ✅ FIXED (correct ID: followUp)
+  followUp.value = data.followup || "";
+
   status.value = data.status || "";
   notes.value = data.notes || "";
 
@@ -158,6 +159,8 @@ function showPage(pageId) {
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   document.getElementById(pageId).style.display = "block";
 }
+
+
 
 
 
