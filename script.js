@@ -128,7 +128,7 @@ async function editProperty(id, tableUsed) {
   location.value = data.location || "";
   property.value = data.property || "";
   source.value = data.source || "";
-  followUp.value = data.followup || "";
+  followup.value = data.followup || "";
   status.value = data.status || "";
   notes.value = data.notes || "";
 
@@ -158,5 +158,6 @@ function showPage(pageId) {
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   document.getElementById(pageId).style.display = "block";
 }
+
 
 
