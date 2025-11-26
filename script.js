@@ -24,11 +24,13 @@ async function fetchData(query = "", table = BUYER_TABLE) {
     .select("*")
     .order("id", { ascending: false });
 
-  if (error) return console.error(error);
+  if (error) {
+    console.error(error);
+    return alert("❌ Failed to load data: " + error.message);
+  }
 
   let filtered = data;
 
-  // SEARCH
   if (query) {
     const q = query.toLowerCase();
     filtered = data.filter((row) =>
@@ -52,7 +54,6 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 
   filtered.forEach((row) => {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -68,7 +69,6 @@ async function fetchData(query = "", table = BUYER_TABLE) {
         <button onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
       </td>
     `;
-
     tableBody.appendChild(tr);
   });
 }
@@ -80,8 +80,8 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const listingTypeVal = listingType.value;
-  const selectedTable = listingTypeVal === "seller" ? SELLER_TABLE : BUYER_TABLE;
+  const listingType = listingType.value;
+  const selectedTable = listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
   const formData = {
     name: name.value,
@@ -102,13 +102,14 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
       .from(selectedTable)
       .update(formData)
       .eq("id", currentEditingId));
-
     currentEditingId = null;
   } else {
     ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
-  if (error) return alert("❌ Error saving: " + error.message);
+  if (error) {
+    return alert("❌ Error saving: " + error.message);
+  }
 
   document.getElementById("addForm").reset();
   fetchData("", selectedTable);
@@ -128,15 +129,15 @@ async function editProperty(id, tableUsed) {
 
   if (error) return alert("❌ Error loading record");
 
-  name.value = data.name || "";
-  phone.value = data.phone || "";
-  email.value = data.email || "";
-  location.value = data.location || "";
-  property.value = data.property || "";
-  source.value = data.source || "";
-  followUp.value = data.followup || "";
-  status.value = data.status || "";
-  notes.value = data.notes || "";
+  name.value = data.name;
+  phone.value = data.phone;
+  email.value = data.email;
+  location.value = data.location;
+  property.value = data.property;
+  source.value = data.source;
+  followUp.value = data.followup;
+  status.value = data.status;
+  notes.value = data.notes;
 
   listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
 
@@ -151,10 +152,7 @@ async function editProperty(id, tableUsed) {
 async function deleteProperty(id, tableUsed) {
   if (!confirm("Delete this record?")) return;
 
-  const { error } = await supabaseClient
-    .from(tableUsed)
-    .delete()
-    .eq("id", id);
+  const { error } = await supabaseClient.from(tableUsed).delete().eq("id", id);
 
   if (error) return alert("❌ Error deleting");
 
@@ -222,7 +220,6 @@ async function fetchRentData() {
       const url = supabaseClient.storage
         .from(RENT_BUCKET)
         .getPublicUrl(row.attachment_path).data.publicUrl;
-
       attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
     }
 
@@ -252,16 +249,15 @@ async function fetchRentData() {
 document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const tenantNameVal = tenantName.value;
-  const propertyAddressVal = propertyAddress.value;
-  const monthlyRentVal = monthlyRent.value;
-  const rentDueDateVal = rentDueDate.value;
-  const tenantContactVal = tenantContact.value;
+  const tenantNameVal = document.getElementById("tenantName").value;
+  const propertyAddressVal = document.getElementById("propertyAddress").value;
+  const monthlyRentVal = document.getElementById("monthlyRent").value;
+  const rentDueDateVal = document.getElementById("rentDueDate").value;
+  const tenantContactVal = document.getElementById("tenantContact").value;
 
   let attachmentPath = null;
   const fileInput = document.getElementById("rentAttachment");
 
-  // Upload file if exists
   if (fileInput && fileInput.files.length > 0) {
     const file = fileInput.files[0];
     const safeName =
@@ -271,7 +267,9 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
       .from(RENT_BUCKET)
       .upload(safeName, file);
 
-    if (upload.error) return alert("❌ Failed to upload file");
+    if (upload.error) {
+      return alert("❌ Failed to upload attachment");
+    }
 
     attachmentPath = upload.data.path;
   }
@@ -293,7 +291,7 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
       .update(rentRecord)
       .eq("id", editEl.value);
 
-    if (error) return alert("❌ Failed to update record");
+    if (error) return alert("❌ Failed to update rent");
 
     editEl.remove();
   } else {
@@ -301,7 +299,7 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
       .from(RENT_TABLE)
       .insert([rentRecord]);
 
-    if (error) return alert("❌ Failed to save rent record");
+    if (error) return alert("❌ Failed to save rent");
   }
 
   document.getElementById("rentForm").reset();
@@ -322,11 +320,11 @@ async function editRent(id) {
 
   if (error) return alert("❌ Failed to load rent record");
 
-  tenantName.value = data.tenant_name;
-  propertyAddress.value = data.property_address;
-  monthlyRent.value = data.monthly_rent;
-  rentDueDate.value = data.due_date;
-  tenantContact.value = data.tenant_contact;
+  document.getElementById("tenantName").value = data.tenant_name;
+  document.getElementById("propertyAddress").value = data.property_address;
+  document.getElementById("monthlyRent").value = data.monthly_rent;
+  document.getElementById("rentDueDate").value = data.due_date;
+  document.getElementById("tenantContact").value = data.tenant_contact;
 
   let hidden = document.getElementById("rentEditId");
   if (!hidden) {
@@ -335,8 +333,8 @@ async function editRent(id) {
     hidden.id = "rentEditId";
     document.getElementById("rentForm").appendChild(hidden);
   }
-
   hidden.value = id;
+
   showPage("addRentPage");
 }
 
@@ -345,7 +343,7 @@ async function editRent(id) {
  * DELETE RENT
  *************************************************************/
 async function deleteRent(id) {
-  if (!confirm("Delete this record?")) return;
+  if (!confirm("Delete this rent record?")) return;
 
   const { error } = await supabaseClient
     .from(RENT_TABLE)
@@ -356,7 +354,6 @@ async function deleteRent(id) {
 
   fetchRentData();
 }
-
 
 
 
