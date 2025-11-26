@@ -1,4 +1,3 @@
-<!-- refresh 3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Real Estate CRM</title>
 
-  <!-- ✅ LOAD SUPABASE FIRST (REQUIRED!) -->
+  <!-- Load Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -84,7 +83,7 @@
 
 <body>
 
-  <!-- Password Protect -->
+  <!-- PASSWORD -->
   <script>
     const allowedPassword = "12345";
     if (!sessionStorage.getItem("crm_access")) {
@@ -133,11 +132,15 @@
       <table class="red-table">
         <thead>
           <tr>
-            <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
-            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th>
-            <!-- ❌ old: <th>Next Follow-Up</th> -->
-            <!-- ✅ fixed below -->
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
             <th>Follow-Up</th>
+            <th>Status</th>
+            <th>Notes</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -153,8 +156,16 @@
       <table class="red-table">
         <thead>
           <tr>
-            <th>Name</th><th>Phone</th><th>Email</th><th>Location</th><th>Property</th>
-            <th>Source</th><th>Follow-Up</th><th>Status</th><th>Notes</th><th>Actions</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
+            <th>Follow-Up</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="seller-table-body"></tbody>
@@ -213,8 +224,14 @@
       <table class="red-table">
         <thead>
           <tr>
-            <th>Tenant Name</th><th>Property</th><th>Rent (RM)</th><th>Due Date</th>
-            <th>Contact</th><th>Status</th><th>Attachment</th><th>Actions</th>
+            <th>Tenant Name</th>
+            <th>Property</th>
+            <th>Rent (RM)</th>
+            <th>Due Date</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Attachment</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="rent-table-body"></tbody>
