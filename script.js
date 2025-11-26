@@ -76,10 +76,14 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 
 /*************************************************************
  *  ADD / EDIT BUYER + SELLER
+ *
+ *  NOTE: using getElementById(...) each time so values are read
+ *  reliably and JS doesn't depend on browser globals.
  *************************************************************/
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // read form values safely
   const listingTypeVal = document.getElementById("listingType").value;
   const selectedTable = listingTypeVal === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
@@ -111,6 +115,7 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     return alert("❌ Error saving: " + error.message);
   }
 
+  // reset and refresh table
   document.getElementById("addForm").reset();
   fetchData("", selectedTable);
   showPage(selectedTable === SELLER_TABLE ? "sellerPage" : "tablePage");
@@ -126,8 +131,12 @@ async function editProperty(id, tableUsed) {
     .eq("id", id)
     .single();
 
-  if (error) return alert("❌ Error loading record");
+  if (error) {
+    console.error(error);
+    return alert("❌ Error loading record: " + (error.message || ""));
+  }
 
+  // populate form fields
   document.getElementById("recordId").value = id;
   document.getElementById("name").value = data.name || "";
   document.getElementById("phone").value = data.phone || "";
@@ -153,13 +162,16 @@ async function deleteProperty(id, tableUsed) {
 
   const { error } = await supabaseClient.from(tableUsed).delete().eq("id", id);
 
-  if (error) return alert("❌ Error deleting");
+  if (error) {
+    console.error(error);
+    return alert("❌ Error deleting: " + (error.message || ""));
+  }
 
   fetchData("", tableUsed);
 }
 
 /*************************************************************
- * BUYER SEARCH (already working)
+ * SEARCH
  *************************************************************/
 function searchProperties() {
   const q = document.getElementById("searchInput")?.value || "";
@@ -167,11 +179,12 @@ function searchProperties() {
 }
 
 /*************************************************************
- * SELLER SEARCH  ✅ NEW
+ * PAGE SWITCH
  *************************************************************/
-function searchSellers() {
-  const q = document.getElementById("searchSeller")?.value || "";
-  fetchData(q, SELLER_TABLE);
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
+  const el = document.getElementById(pageId);
+  if (el) el.style.display = "block";
 }
 
 /*************************************************************
@@ -187,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
 /*************************************************************
  * RENT SECTION
  *************************************************************/
-async function fetchRentData(query = "") {
+async function fetchRentData() {
   const tbody = document.getElementById("rent-table-body");
   if (!tbody) return;
 
@@ -201,31 +214,24 @@ async function fetchRentData(query = "") {
     return;
   }
 
-  let filtered = data || [];
-
-  if (query) {
-    const q = query.toLowerCase();
-    filtered = filtered.filter((row) =>
-      (row.tenant_name || "").toLowerCase().includes(q) ||
-      (row.property_address || "").toLowerCase().includes(q) ||
-      (row.status || "").toLowerCase().includes(q)
-    );
-  }
-
-  if (!filtered.length) {
+  if (!data || !data.length) {
     tbody.innerHTML = "<tr><td colspan='8'>No rent records found</td></tr>";
     return;
   }
 
   tbody.innerHTML = "";
 
-  filtered.forEach((row) => {
-    let due = row.due_date || "";
+  data.forEach((row) => {
+    let due = row.due_date || row.rent_due_date || "";
 
     let attachmentHtml = "";
     if (row.attachment_path) {
-      const url = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
-      attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
+      try {
+        const url = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
+        attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
+      } catch (e) {
+        attachmentHtml = "";
+      }
     }
 
     const tr = document.createElement("tr");
@@ -245,14 +251,6 @@ async function fetchRentData(query = "") {
 
     tbody.appendChild(tr);
   });
-}
-
-/*************************************************************
- * RENT SEARCH  ✅ NEW
- *************************************************************/
-function searchRentData() {
-  const q = document.getElementById("searchRent")?.value || "";
-  fetchRentData(q);
 }
 
 /*************************************************************
@@ -279,7 +277,9 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
       .from(RENT_BUCKET)
       .upload(safeName, file);
 
-    if (upload.error) return alert("❌ Failed to upload attachment");
+    if (upload.error) {
+      return alert("❌ Failed to upload attachment");
+    }
 
     attachmentPath = upload.data.path;
   }
@@ -315,7 +315,7 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   document.getElementById("rentForm").reset();
   fetchRentData();
   showPage("rentPage");
-}
+});
 
 /*************************************************************
  * EDIT RENT
@@ -327,7 +327,7 @@ async function editRent(id) {
     .eq("id", id)
     .single();
 
-  if (error) return alert("❌ Failed to load rent");
+  if (error) return alert("❌ Failed to load rent record");
 
   document.getElementById("tenantName").value = data.tenant_name || "";
   document.getElementById("propertyAddress").value = data.property_address || "";
@@ -351,12 +351,21 @@ async function editRent(id) {
  * DELETE RENT
  *************************************************************/
 async function deleteRent(id) {
-  if (!confirm("Delete rent?")) return;
+  if (!confirm("Delete this rent record?")) return;
 
-  await supabaseClient.from(RENT_TABLE).delete().eq("id", id);
+  const { error } = await supabaseClient
+    .from(RENT_TABLE)
+    .delete()
+    .eq("id", id);
+
+  if (error) return alert("❌ Failed to delete rent");
 
   fetchRentData();
 }
+
+
+
+
 
 
 
