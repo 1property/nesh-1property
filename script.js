@@ -14,7 +14,6 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentEditingId = null;
 
-
 /*************************************************************
  *  FETCH BUYER / SELLER
  *************************************************************/
@@ -29,11 +28,11 @@ async function fetchData(query = "", table = BUYER_TABLE) {
     return alert("❌ Failed to load data: " + error.message);
   }
 
-  let filtered = data;
+  let filtered = data || [];
 
   if (query) {
     const q = query.toLowerCase();
-    filtered = data.filter((row) =>
+    filtered = filtered.filter((row) =>
       (row.name || "").toLowerCase().includes(q) ||
       (row.location || "").toLowerCase().includes(q) ||
       (row.status || "").toLowerCase().includes(q)
@@ -44,6 +43,8 @@ async function fetchData(query = "", table = BUYER_TABLE) {
     table === SELLER_TABLE
       ? document.getElementById("seller-table-body")
       : document.getElementById("data-table-body");
+
+  if (!tableBody) return;
 
   tableBody.innerHTML = "";
 
@@ -73,26 +74,29 @@ async function fetchData(query = "", table = BUYER_TABLE) {
   });
 }
 
-
 /*************************************************************
  *  ADD / EDIT BUYER + SELLER
+ *
+ *  NOTE: using getElementById(...) each time so values are read
+ *  reliably and JS doesn't depend on browser globals.
  *************************************************************/
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const listingType = listingType.value;
-  const selectedTable = listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
+  // read form values safely
+  const listingTypeVal = document.getElementById("listingType").value;
+  const selectedTable = listingTypeVal === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
   const formData = {
-    name: name.value,
-    phone: phone.value,
-    email: email.value,
-    location: location.value,
-    property: property.value,
-    source: source.value,
-    followup: followUp.value,
-    status: status.value,
-    notes: notes.value,
+    name: document.getElementById("name").value || "",
+    phone: document.getElementById("phone").value || "",
+    email: document.getElementById("email").value || "",
+    location: document.getElementById("location").value || "",
+    property: document.getElementById("property").value || "",
+    source: document.getElementById("source").value || "",
+    followup: document.getElementById("followUp").value || null,
+    status: document.getElementById("status").value || "",
+    notes: document.getElementById("notes").value || "",
   };
 
   let error;
@@ -111,11 +115,11 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     return alert("❌ Error saving: " + error.message);
   }
 
+  // reset and refresh table
   document.getElementById("addForm").reset();
   fetchData("", selectedTable);
   showPage(selectedTable === SELLER_TABLE ? "sellerPage" : "tablePage");
 });
-
 
 /*************************************************************
  *  EDIT BUYER/SELLER
@@ -127,24 +131,28 @@ async function editProperty(id, tableUsed) {
     .eq("id", id)
     .single();
 
-  if (error) return alert("❌ Error loading record");
+  if (error) {
+    console.error(error);
+    return alert("❌ Error loading record: " + (error.message || ""));
+  }
 
-  name.value = data.name;
-  phone.value = data.phone;
-  email.value = data.email;
-  location.value = data.location;
-  property.value = data.property;
-  source.value = data.source;
-  followUp.value = data.followup;
-  status.value = data.status;
-  notes.value = data.notes;
+  // populate form fields
+  document.getElementById("recordId").value = id;
+  document.getElementById("name").value = data.name || "";
+  document.getElementById("phone").value = data.phone || "";
+  document.getElementById("email").value = data.email || "";
+  document.getElementById("location").value = data.location || "";
+  document.getElementById("property").value = data.property || "";
+  document.getElementById("source").value = data.source || "";
+  document.getElementById("followUp").value = data.followup || "";
+  document.getElementById("status").value = data.status || "";
+  document.getElementById("notes").value = data.notes || "";
 
-  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
+  document.getElementById("listingType").value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
 
   currentEditingId = id;
   showPage("formPage");
 }
-
 
 /*************************************************************
  *  DELETE BUYER/SELLER
@@ -154,28 +162,30 @@ async function deleteProperty(id, tableUsed) {
 
   const { error } = await supabaseClient.from(tableUsed).delete().eq("id", id);
 
-  if (error) return alert("❌ Error deleting");
+  if (error) {
+    console.error(error);
+    return alert("❌ Error deleting: " + (error.message || ""));
+  }
 
   fetchData("", tableUsed);
 }
-
 
 /*************************************************************
  * SEARCH
  *************************************************************/
 function searchProperties() {
-  fetchData(searchInput.value, BUYER_TABLE);
+  const q = document.getElementById("searchInput")?.value || "";
+  fetchData(q, BUYER_TABLE);
 }
-
 
 /*************************************************************
  * PAGE SWITCH
  *************************************************************/
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
-  document.getElementById(pageId).style.display = "block";
+  const el = document.getElementById(pageId);
+  if (el) el.style.display = "block";
 }
-
 
 /*************************************************************
  * INITIAL LOAD
@@ -186,7 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchRentData();
   showPage("tablePage");
 });
-
 
 /*************************************************************
  * RENT SECTION
@@ -205,7 +214,7 @@ async function fetchRentData() {
     return;
   }
 
-  if (!data.length) {
+  if (!data || !data.length) {
     tbody.innerHTML = "<tr><td colspan='8'>No rent records found</td></tr>";
     return;
   }
@@ -217,10 +226,12 @@ async function fetchRentData() {
 
     let attachmentHtml = "";
     if (row.attachment_path) {
-      const url = supabaseClient.storage
-        .from(RENT_BUCKET)
-        .getPublicUrl(row.attachment_path).data.publicUrl;
-      attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
+      try {
+        const url = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
+        attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
+      } catch (e) {
+        attachmentHtml = "";
+      }
     }
 
     const tr = document.createElement("tr");
@@ -241,7 +252,6 @@ async function fetchRentData() {
     tbody.appendChild(tr);
   });
 }
-
 
 /*************************************************************
  * ADD / UPDATE RENT
@@ -307,7 +317,6 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   showPage("rentPage");
 });
 
-
 /*************************************************************
  * EDIT RENT
  *************************************************************/
@@ -320,11 +329,11 @@ async function editRent(id) {
 
   if (error) return alert("❌ Failed to load rent record");
 
-  document.getElementById("tenantName").value = data.tenant_name;
-  document.getElementById("propertyAddress").value = data.property_address;
-  document.getElementById("monthlyRent").value = data.monthly_rent;
-  document.getElementById("rentDueDate").value = data.due_date;
-  document.getElementById("tenantContact").value = data.tenant_contact;
+  document.getElementById("tenantName").value = data.tenant_name || "";
+  document.getElementById("propertyAddress").value = data.property_address || "";
+  document.getElementById("monthlyRent").value = data.monthly_rent || "";
+  document.getElementById("rentDueDate").value = data.due_date || "";
+  document.getElementById("tenantContact").value = data.tenant_contact || "";
 
   let hidden = document.getElementById("rentEditId");
   if (!hidden) {
@@ -337,7 +346,6 @@ async function editRent(id) {
 
   showPage("addRentPage");
 }
-
 
 /*************************************************************
  * DELETE RENT
@@ -354,10 +362,6 @@ async function deleteRent(id) {
 
   fetchRentData();
 }
-
-
-
-
 
 
 
