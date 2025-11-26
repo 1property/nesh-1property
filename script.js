@@ -361,5 +361,3 @@ async function deleteRent(id) {
 
 
 
-
-
