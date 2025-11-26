@@ -14,6 +14,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentEditingId = null;
 
+
 /*************************************************************
  *  FETCH BUYER / SELLER
  *************************************************************/
@@ -30,7 +31,6 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 
   let filtered = data;
 
-  // SEARCH FIX
   if (query) {
     const q = query.toLowerCase();
     filtered = data.filter((row) =>
@@ -73,15 +73,15 @@ async function fetchData(query = "", table = BUYER_TABLE) {
   });
 }
 
+
 /*************************************************************
  *  ADD / EDIT BUYER + SELLER
  *************************************************************/
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // FIX 2: listingType conflict
-  const listingTypeValue = document.getElementById("listingType").value;
-  const selectedTable = listingTypeValue === "seller" ? SELLER_TABLE : BUYER_TABLE;
+  const listingType = listingType.value;
+  const selectedTable = listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
   const formData = {
     name: name.value,
@@ -107,12 +107,15 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
-  if (error) return alert("❌ Error saving: " + error.message);
+  if (error) {
+    return alert("❌ Error saving: " + error.message);
+  }
 
   document.getElementById("addForm").reset();
   fetchData("", selectedTable);
   showPage(selectedTable === SELLER_TABLE ? "sellerPage" : "tablePage");
 });
+
 
 /*************************************************************
  *  EDIT BUYER/SELLER
@@ -142,6 +145,7 @@ async function editProperty(id, tableUsed) {
   showPage("formPage");
 }
 
+
 /*************************************************************
  *  DELETE BUYER/SELLER
  *************************************************************/
@@ -155,13 +159,14 @@ async function deleteProperty(id, tableUsed) {
   fetchData("", tableUsed);
 }
 
+
 /*************************************************************
- * SEARCH FIXED
+ * SEARCH
  *************************************************************/
 function searchProperties() {
-  const query = document.getElementById("searchInput").value;
-  fetchData(query, BUYER_TABLE);
+  fetchData(searchInput.value, BUYER_TABLE);
 }
+
 
 /*************************************************************
  * PAGE SWITCH
@@ -170,6 +175,7 @@ function showPage(pageId) {
   document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
   document.getElementById(pageId).style.display = "block";
 }
+
 
 /*************************************************************
  * INITIAL LOAD
@@ -181,8 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
   showPage("tablePage");
 });
 
+
 /*************************************************************
- * RENT SECTION (unchanged)
+ * RENT SECTION
  *************************************************************/
 async function fetchRentData() {
   const tbody = document.getElementById("rent-table-body");
@@ -235,8 +242,9 @@ async function fetchRentData() {
   });
 }
 
+
 /*************************************************************
- * ADD / UPDATE RENT (unchanged)
+ * ADD / UPDATE RENT
  *************************************************************/
 document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -299,6 +307,7 @@ document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   showPage("rentPage");
 });
 
+
 /*************************************************************
  * EDIT RENT
  *************************************************************/
@@ -329,6 +338,7 @@ async function editRent(id) {
   showPage("addRentPage");
 }
 
+
 /*************************************************************
  * DELETE RENT
  *************************************************************/
@@ -344,6 +354,11 @@ async function deleteRent(id) {
 
   fetchRentData();
 }
+
+
+
+
+
 
 
 
