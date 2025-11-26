@@ -30,7 +30,6 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 
   let filtered = data;
 
-  // SEARCH FIX
   if (query) {
     const q = query.toLowerCase();
     filtered = data.filter((row) =>
@@ -79,7 +78,7 @@ async function fetchData(query = "", table = BUYER_TABLE) {
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // FIX 2: listingType conflict
+  // FIXED: avoid overwriting listingType
   const listingTypeValue = document.getElementById("listingType").value;
   const selectedTable = listingTypeValue === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
@@ -107,7 +106,9 @@ document.getElementById("addForm").addEventListener("submit", async (e) => {
     ({ error } = await supabaseClient.from(selectedTable).insert([formData]));
   }
 
-  if (error) return alert("❌ Error saving: " + error.message);
+  if (error) {
+    return alert("❌ Error saving: " + error.message);
+  }
 
   document.getElementById("addForm").reset();
   fetchData("", selectedTable);
@@ -136,7 +137,8 @@ async function editProperty(id, tableUsed) {
   status.value = data.status;
   notes.value = data.notes;
 
-  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
+  document.getElementById("listingType").value =
+    tableUsed === SELLER_TABLE ? "seller" : "buyer";
 
   currentEditingId = id;
   showPage("formPage");
@@ -156,7 +158,7 @@ async function deleteProperty(id, tableUsed) {
 }
 
 /*************************************************************
- * SEARCH FIXED
+ *  SEARCH
  *************************************************************/
 function searchProperties() {
   const query = document.getElementById("searchInput").value;
@@ -182,7 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /*************************************************************
- * RENT SECTION (unchanged)
+ * RENT SECTION
  *************************************************************/
 async function fetchRentData() {
   const tbody = document.getElementById("rent-table-body");
@@ -236,7 +238,7 @@ async function fetchRentData() {
 }
 
 /*************************************************************
- * ADD / UPDATE RENT (unchanged)
+ * ADD / UPDATE RENT
  *************************************************************/
 document.getElementById("rentForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
