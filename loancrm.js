@@ -1,13 +1,13 @@
 /*******************************
  * loancrm.js
- * Supabase-backed Bank Loan CRM
+ * Supabase-backed Bank Loan CRM (view toggles added)
  *******************************/
 
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
 
-const LOAN_TABLE = "loan_clients";     // recommended table name in Supabase
-const LOAN_BUCKET = "loan-attachments"; // recommended bucket name in Supabase
+const LOAN_TABLE = "loan_clients";
+const LOAN_BUCKET = "loan-attachments";
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -19,6 +19,10 @@ const searchBtn = document.getElementById("searchBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const cancelEdit = document.getElementById("cancelEdit");
 const formMsg = document.getElementById("formMsg");
+
+const formCard = document.getElementById("formCard");
+const listCard = document.getElementById("listCard");
+const formTitle = document.getElementById("formTitle");
 
 let editingId = null;
 
@@ -34,12 +38,36 @@ function fmtCurrency(v) {
 }
 
 /* ---------------------------
+   Show / Hide Views
+   --------------------------- */
+function showForm(editing = false) {
+  listCard.style.display = "none";
+  formCard.style.display = "block";
+  if (editing) {
+    formTitle.textContent = "Edit Loan Client";
+  } else {
+    formTitle.textContent = "Add Loan Client";
+    loanForm.reset();
+    editingId = null;
+    document.getElementById("loanEditId").value = "";
+    formMsg.textContent = "";
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function showList() {
+  formCard.style.display = "none";
+  listCard.style.display = "block";
+  // refresh list
+  fetchLoanClients();
+}
+
+/* ---------------------------
    Fetch & render
    --------------------------- */
 async function fetchLoanClients(query = "") {
+  if (!loanTableBody) return;
   loanTableBody.innerHTML = "<tr><td colspan='12' class='muted'>Loading…</td></tr>";
 
-  // fetch all rows (descending by id)
   const { data, error } = await supabase
     .from(LOAN_TABLE)
     .select("*")
@@ -123,7 +151,6 @@ loanForm.addEventListener("submit", async (ev) => {
   ev.preventDefault();
   formMsg.textContent = "";
 
-  // read fields
   const clientName = document.getElementById("clientName").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -135,7 +162,6 @@ loanForm.addEventListener("submit", async (ev) => {
   const status = document.getElementById("status").value;
   const notes = document.getElementById("notes").value.trim();
 
-  // attachment
   const inputFile = document.getElementById("attachment");
   let attachmentPath = null;
   if (inputFile && inputFile.files && inputFile.files[0]) {
@@ -174,11 +200,11 @@ loanForm.addEventListener("submit", async (ev) => {
       if (error) throw error;
       formMsg.textContent = "Saved";
     }
-    // reset form & reload
     loanForm.reset();
     editingId = null;
     document.getElementById("loanEditId").value = "";
-    await fetchLoanClients();
+    // go back to list after save
+    showList();
     setTimeout(() => formMsg.textContent = "", 2500);
   } catch (err) {
     console.error(err);
@@ -207,9 +233,8 @@ window.onEditLoan = async function(id) {
   document.getElementById("bankerName").value = data.banker_name || "";
   document.getElementById("status").value = data.status || "New";
   document.getElementById("notes").value = data.notes || "";
-  // note: attachments are not set back into file input (browsers don't allow). Show message
   formMsg.textContent = data.attachment_path ? "Record has existing attachment" : "";
-  scrollTo({ top: 0, behavior: "smooth" });
+  showForm(true);
 };
 
 window.onDeleteLoan = async function(id) {
@@ -233,5 +258,7 @@ cancelEdit.addEventListener("click", () => { loanForm.reset(); editingId = null;
    initial load
    --------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  fetchLoanClients();
+  // show list view by default
+  showList();
 });
+
