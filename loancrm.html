@@ -3,280 +3,503 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bank Loan CRM — Nesh Property</title>
+  <title>Bank Loan CRM</title>
 
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --navy:#003366;
-      --gold:#d4af37;
-      --bg:#f6f7f9;
-      --card:#ffffff;
-      --muted:#6b7280;
-      --radius:12px;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:"Poppins",system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;
-      background: linear-gradient(180deg,#f7f9fb 0%, #f6f7f9 100%);
-      color:#111827;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding-bottom:60px;
-    }
-
-    /* Top bar */
-    header{
-      background:var(--navy);
-      color:white;
-      padding:40px 16px;
-      text-align:center;
-    }
-    header h1{ margin:0; font-size:28px; font-weight:600; letter-spacing:0.2px;}
-    header p{ margin:6px 0 0; color:rgba(255,255,255,0.85); }
-
-    /* centered page container */
-    .wrap{
-      max-width:980px;
-      margin:-36px auto 40px; /* overlap card under header */
-      padding:0 16px;
-    }
-
-    /* big centered card */
-    .main-card{
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:0 10px 30px rgba(2,6,23,0.08);
-      padding:20px;
-      overflow:hidden;
-    }
-
-    /* Top actions row */
-    .top-actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:center;
-      margin-bottom:18px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 14px;
-      border-radius:10px;
-      font-weight:600;
-      cursor:pointer;
-      border:none;
-      text-decoration:none;
-    }
-    .btn.primary{ background:var(--navy); color:white; box-shadow:0 6px 18px rgba(0,51,102,0.12); }
-    .btn.ghost{ background:white; color:var(--navy); border:1px solid rgba(0,0,0,0.06); }
-    .btn.gold{ background:var(--gold); color:#fff; }
-
-    /* Two-column form layout inside card */
-    .card{
-      background:var(--card);
-      border-radius:10px;
-      padding:20px;
-      margin-bottom:18px;
-      box-shadow:0 4px 18px rgba(2,6,23,0.04);
-    }
-    h2{ margin:0 0 12px 0; font-size:20px; color:var(--navy); }
-
-    form .row{
-      display:flex;
-      gap:12px;
-      margin-bottom:12px;
-      flex-wrap:wrap;
-    }
-    .col{ flex:1 1 220px; min-width:180px; }
-    label{ display:block; margin-bottom:6px; font-size:13px; color:#374151; font-weight:600; }
-    input[type=text], input[type=email], input[type=number], select, textarea, input[type=file]{
-      width:100%;
-      padding:10px 12px;
-      border-radius:8px;
-      border:1px solid #e6eef6;
+    body { font-family: 'Poppins', system-ui, sans-serif; margin:0; background:#f6f7f9; color:#222; }
+    header { background:#003366; color:#fff; padding:28px 20px; text-align:center; }
+    .container { max-width:1100px; margin:22px auto; padding:0 16px; }
+    .card { background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 20px rgba(0,0,0,0.06); margin-bottom:18px; }
+    h1,h2 { margin:0 0 12px 0; }
+    form .row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    form label { display:block; margin-bottom:6px; font-weight:600; font-size:0.95rem; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea {
+      width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;
       background:#f8fbff;
-      outline:none;
-      font-size:14px;
-      color:#111827;
     }
-    textarea{ min-height:120px; resize:vertical; padding-top:12px; }
-
-    .muted{ color:var(--muted); font-size:13px; }
-
-    .actions{ display:flex; gap:10px; align-items:center; margin-top:6px; flex-wrap:wrap; }
-    button.primary{ background:var(--navy); color:white; border:none; padding:10px 14px; border-radius:8px; font-weight:600; cursor:pointer; }
-    button.secondary{ background:#6b7280; color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; }
-
-    /* List styles */
-    .search-row{ display:flex; gap:10px; align-items:center; margin-bottom:14px; }
-    .search-row input{ padding:12px; border-radius:10px; border:1px solid #e6eef6; background:white; flex:1; }
-    .table-wrapper{ overflow:auto; border-radius:8px; }
-    table{ width:100%; border-collapse:collapse; min-width:900px; }
-    thead th{ background:var(--navy); color:#fff; text-align:left; padding:12px; position:sticky; top:0; z-index:2; font-weight:600; }
-    tbody td{ padding:12px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
-    .file-link{ color:var(--navy); text-decoration:underline; }
-
-    /* responsive */
-    @media (max-width:800px){
-      .wrap{ margin: -20px 12px 24px; }
-      .top-actions{ justify-content:flex-start; padding:0 8px; }
-      thead th{ font-size:13px; }
-    }
-
-    /* subtle footer */
-    .small-note{ text-align:center; color:var(--muted); font-size:13px; margin-top:8px; }
+    .col { flex:1 1 220px; min-width:180px; }
+    textarea { min-height:80px; resize:vertical; }
+    .actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    button { background:#003366; border:none; color:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    button.secondary { background:#666; }
+    .search { margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .table-wrapper { overflow:auto; }
+    table { width:100%; border-collapse:collapse; min-width:900px; }
+    th, td { padding:12px 10px; border-bottom:1px solid #eee; text-align:left; }
+    th { background:#003366; color:#fff; position:sticky; top:0; z-index:1; }
+    a.file-link { color:#003366; text-decoration:underline; }
+    .small { font-size:0.85rem; color:#666; }
+    .muted { color:#666; font-size:0.9rem; }
+    .note { margin-top:8px; font-size:0.9rem; color:#555; }
+    @media (max-width:720px){ .row{ flex-direction:column; } .col{ min-width:auto; } }
   </style>
 </head>
 <body>
   <header>
-    <h1>Nesh Property — Bank Loan CRM</h1>
-    <p class="muted">Centered premium card layout • add, search, edit clients with attachments</p>
+    <h1>Bank Loan CRM</h1>
+    <div class="muted">Add, search, edit and manage loan clients — with attachments</div>
   </header>
 
-  <div class="wrap">
-    <div class="main-card">
-      <!-- Top action buttons -->
-      <div class="top-actions">
-        <button id="btnViewList" class="btn ghost">View Clients</button>
-        <button id="btnAddClient" class="btn gold">Add Client</button>
-        <a href="index.html" class="btn ghost">Back Home</a>
-        <a href="crm.html" class="btn ghost">Back to Agent CRM</a>
-      </div>
+  <div class="container">
+    <!-- Form -->
+    <div class="card" id="formCard">
+      <h2>Add / Edit Loan Client</h2>
 
-      <!-- Form card (hidden by default) -->
-      <div id="formCard" class="card" style="display:none;">
-        <h2 id="formTitle">Add Loan Client</h2>
+      <form id="loanForm">
+        <input type="hidden" id="loanEditId">
 
-        <form id="loanForm">
-          <input type="hidden" id="loanEditId">
-
-          <div class="row">
-            <div class="col">
-              <label for="clientName">Client Name</label>
-              <input id="clientName" type="text" required />
-            </div>
-            <div class="col">
-              <label for="phone">Phone</label>
-              <input id="phone" type="text" />
-            </div>
-            <div class="col">
-              <label for="email">Email</label>
-              <input id="email" type="email" />
-            </div>
+        <div class="row">
+          <div class="col">
+            <label for="clientName">Client Name</label>
+            <input id="clientName" type="text" required />
           </div>
-
-          <div class="row">
-            <div class="col">
-              <label for="income">Income (RM)</label>
-              <input id="income" type="number" step="0.01" />
-            </div>
-            <div class="col">
-              <label for="loanType">Loan Type</label>
-              <select id="loanType">
-                <option>Housing Loan</option>
-                <option>Personal Loan</option>
-                <option>Car Loan</option>
-                <option>Refinance</option>
-              </select>
-            </div>
-            <div class="col">
-              <label for="loanAmount">Loan Amount (RM)</label>
-              <input id="loanAmount" type="number" step="0.01" />
-            </div>
+          <div class="col">
+            <label for="phone">Phone</label>
+            <input id="phone" type="text" />
           </div>
-
-          <div class="row">
-            <div class="col">
-              <label for="bank">Bank</label>
-              <input id="bank" type="text" />
-            </div>
-            <div class="col">
-              <label for="bankerName">Banker Name</label>
-              <input id="bankerName" type="text" />
-            </div>
-            <div class="col">
-              <label for="status">Status</label>
-              <select id="status">
-                <option>New</option>
-                <option>In Progress</option>
-                <option>Approved</option>
-                <option>Rejected</option>
-                <option>Closed</option>
-              </select>
-            </div>
+          <div class="col">
+            <label for="email">Email</label>
+            <input id="email" type="email" />
           </div>
-
-          <div class="row">
-            <div class="col" style="flex:2;">
-              <label for="notes">Notes</label>
-              <textarea id="notes"></textarea>
-            </div>
-            <div class="col">
-              <label for="attachment">Attachment (pdf, docx, zip, images)</label>
-              <input id="attachment" type="file" accept=".pdf,.doc,.docx,.zip,.rar,image/*">
-              <div class="muted" style="margin-top:8px">Attach one file (recommended max 20MB)</div>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button type="submit" class="primary">Save Client</button>
-            <button id="cancelEdit" type="button" class="secondary">Clear</button>
-            <div id="formMsg" class="muted" style="margin-left:8px"></div>
-          </div>
-        </form>
-      </div>
-
-      <!-- List card -->
-      <div id="listCard" class="card">
-        <h2>Loan Clients</h2>
-
-        <div class="search-row">
-          <input id="searchLoan" placeholder="Search by name, bank, loan type, banker or status" />
-          <button id="searchBtn" class="btn primary">Search</button>
-          <button id="refreshBtn" class="btn secondary">Refresh</button>
         </div>
 
-        <div class="table-wrapper">
-          <table aria-describedby="loan clients">
-            <thead>
-              <tr>
-                <th>Name</th><th>Phone</th><th>Email</th><th>Income</th>
-                <th>Loan Type</th><th>Amount</th><th>Bank</th><th>Banker</th>
-                <th>Status</th><th>Attachment</th><th>Notes</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="loanTableBody">
-              <!-- rows injected by loancrm.js -->
-            </tbody>
-          </table>
+        <div class="row">
+          <div class="col">
+            <label for="income">Income (RM)</label>
+            <input id="income" type="number" step="0.01" />
+          </div>
+          <div class="col">
+            <label for="loanType">Loan Type</label>
+            <select id="loanType">
+              <option value="Housing Loan">Housing Loan</option>
+              <option value="Personal Loan">Personal Loan</option>
+              <option value="Car Loan">Car Loan</option>
+              <option value="Refinance">Refinance</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="loanAmount">Loan Amount (RM)</label>
+            <input id="loanAmount" type="number" step="0.01" />
+          </div>
         </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="bank">Bank</label>
+            <input id="bank" type="text" />
+          </div>
+          <div class="col">
+            <label for="bankerName">Banker Name</label>
+            <input id="bankerName" type="text" />
+          </div>
+          <div class="col">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col" style="flex:2 1 400px">
+            <label for="notes">Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+          <div class="col" style="flex:1 1 220px">
+            <label for="attachment">Attachment (pdf, docx, zip, images)</label>
+            <input id="attachment" type="file" accept=".pdf,.doc,.docx,.zip,.rar,image/*" />
+            <div class="note">Attach one file. Max recommended: 20MB (depending on your Supabase storage limits).</div>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button id="saveBtn" type="submit">Save Client</button>
+          <button id="cancelEdit" type="button" class="secondary">Clear</button>
+          <div class="muted" id="formMsg" style="margin-left:10px"></div>
+        </div>
+      </form>
+    </div>
+
+    <!-- List & Search -->
+    <div class="card">
+      <h2>Loan Clients</h2>
+
+      <div class="search">
+        <input id="searchLoan" placeholder="Search by name, bank, loan type, banker or status" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;background:#fff" />
+        <button id="searchBtn">Search</button>
+        <button id="refreshBtn" class="secondary">Refresh</button>
       </div>
 
-      <div class="small-note">Designed: Centered premium card layout — Nesh Property</div>
+      <div class="table-wrapper">
+        <table id="loanTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Income</th>
+              <th>Loan Type</th>
+              <th>Amount</th>
+              <th>Bank</th>
+              <th>Banker</th>
+              <th>Status</th>
+              <th>Attachment</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="loanTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- app script (Supabase logic) -->
+  <!-- script -->
   <script src="loancrm.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bank Loan CRM</title>
 
-  <script>
-    // quick bindings for the top buttons (loancrm.js exposes showForm/showList)
-    document.getElementById("btnAddClient").addEventListener("click", () => {
-      if (typeof showForm === "function") showForm();
-    });
-    document.getElementById("btnViewList").addEventListener("click", () => {
-      if (typeof showList === "function") showList();
-    });
-  </script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', system-ui, sans-serif; margin:0; background:#f6f7f9; color:#222; }
+    header { background:#003366; color:#fff; padding:28px 20px; text-align:center; }
+    .container { max-width:1100px; margin:22px auto; padding:0 16px; }
+    .card { background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 20px rgba(0,0,0,0.06); margin-bottom:18px; }
+    h1,h2 { margin:0 0 12px 0; }
+    form .row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    form label { display:block; margin-bottom:6px; font-weight:600; font-size:0.95rem; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea {
+      width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;
+      background:#f8fbff;
+    }
+    .col { flex:1 1 220px; min-width:180px; }
+    textarea { min-height:80px; resize:vertical; }
+    .actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    button { background:#003366; border:none; color:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    button.secondary { background:#666; }
+    .search { margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .table-wrapper { overflow:auto; }
+    table { width:100%; border-collapse:collapse; min-width:900px; }
+    th, td { padding:12px 10px; border-bottom:1px solid #eee; text-align:left; }
+    th { background:#003366; color:#fff; position:sticky; top:0; z-index:1; }
+    a.file-link { color:#003366; text-decoration:underline; }
+    .small { font-size:0.85rem; color:#666; }
+    .muted { color:#666; font-size:0.9rem; }
+    .note { margin-top:8px; font-size:0.9rem; color:#555; }
+    @media (max-width:720px){ .row{ flex-direction:column; } .col{ min-width:auto; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bank Loan CRM</h1>
+    <div class="muted">Add, search, edit and manage loan clients — with attachments</div>
+  </header>
+
+  <div class="container">
+    <!-- Form -->
+    <div class="card" id="formCard">
+      <h2>Add / Edit Loan Client</h2>
+
+      <form id="loanForm">
+        <input type="hidden" id="loanEditId">
+
+        <div class="row">
+          <div class="col">
+            <label for="clientName">Client Name</label>
+            <input id="clientName" type="text" required />
+          </div>
+          <div class="col">
+            <label for="phone">Phone</label>
+            <input id="phone" type="text" />
+          </div>
+          <div class="col">
+            <label for="email">Email</label>
+            <input id="email" type="email" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="income">Income (RM)</label>
+            <input id="income" type="number" step="0.01" />
+          </div>
+          <div class="col">
+            <label for="loanType">Loan Type</label>
+            <select id="loanType">
+              <option value="Housing Loan">Housing Loan</option>
+              <option value="Personal Loan">Personal Loan</option>
+              <option value="Car Loan">Car Loan</option>
+              <option value="Refinance">Refinance</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="loanAmount">Loan Amount (RM)</label>
+            <input id="loanAmount" type="number" step="0.01" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="bank">Bank</label>
+            <input id="bank" type="text" />
+          </div>
+          <div class="col">
+            <label for="bankerName">Banker Name</label>
+            <input id="bankerName" type="text" />
+          </div>
+          <div class="col">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col" style="flex:2 1 400px">
+            <label for="notes">Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+          <div class="col" style="flex:1 1 220px">
+            <label for="attachment">Attachment (pdf, docx, zip, images)</label>
+            <input id="attachment" type="file" accept=".pdf,.doc,.docx,.zip,.rar,image/*" />
+            <div class="note">Attach one file. Max recommended: 20MB (depending on your Supabase storage limits).</div>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button id="saveBtn" type="submit">Save Client</button>
+          <button id="cancelEdit" type="button" class="secondary">Clear</button>
+          <div class="muted" id="formMsg" style="margin-left:10px"></div>
+        </div>
+      </form>
+    </div>
+
+    <!-- List & Search -->
+    <div class="card">
+      <h2>Loan Clients</h2>
+
+      <div class="search">
+        <input id="searchLoan" placeholder="Search by name, bank, loan type, banker or status" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;background:#fff" />
+        <button id="searchBtn">Search</button>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="loanTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Income</th>
+              <th>Loan Type</th>
+              <th>Amount</th>
+              <th>Bank</th>
+              <th>Banker</th>
+              <th>Status</th>
+              <th>Attachment</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="loanTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- script -->
+  <script src="loancrm.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bank Loan CRM</title>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', system-ui, sans-serif; margin:0; background:#f6f7f9; color:#222; }
+    header { background:#003366; color:#fff; padding:28px 20px; text-align:center; }
+    .container { max-width:1100px; margin:22px auto; padding:0 16px; }
+    .card { background:#fff; border-radius:10px; padding:18px; box-shadow:0 6px 20px rgba(0,0,0,0.06); margin-bottom:18px; }
+    h1,h2 { margin:0 0 12px 0; }
+    form .row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+    form label { display:block; margin-bottom:6px; font-weight:600; font-size:0.95rem; }
+    input[type="text"], input[type="email"], input[type="number"], input[type="date"], select, textarea {
+      width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;
+      background:#f8fbff;
+    }
+    .col { flex:1 1 220px; min-width:180px; }
+    textarea { min-height:80px; resize:vertical; }
+    .actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    button { background:#003366; border:none; color:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    button.secondary { background:#666; }
+    .search { margin-bottom:12px; display:flex; gap:8px; align-items:center; }
+    .table-wrapper { overflow:auto; }
+    table { width:100%; border-collapse:collapse; min-width:900px; }
+    th, td { padding:12px 10px; border-bottom:1px solid #eee; text-align:left; }
+    th { background:#003366; color:#fff; position:sticky; top:0; z-index:1; }
+    a.file-link { color:#003366; text-decoration:underline; }
+    .small { font-size:0.85rem; color:#666; }
+    .muted { color:#666; font-size:0.9rem; }
+    .note { margin-top:8px; font-size:0.9rem; color:#555; }
+    @media (max-width:720px){ .row{ flex-direction:column; } .col{ min-width:auto; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bank Loan CRM</h1>
+    <div class="muted">Add, search, edit and manage loan clients — with attachments</div>
+  </header>
+
+  <div class="container">
+    <!-- Form -->
+    <div class="card" id="formCard">
+      <h2>Add / Edit Loan Client</h2>
+
+      <form id="loanForm">
+        <input type="hidden" id="loanEditId">
+
+        <div class="row">
+          <div class="col">
+            <label for="clientName">Client Name</label>
+            <input id="clientName" type="text" required />
+          </div>
+          <div class="col">
+            <label for="phone">Phone</label>
+            <input id="phone" type="text" />
+          </div>
+          <div class="col">
+            <label for="email">Email</label>
+            <input id="email" type="email" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="income">Income (RM)</label>
+            <input id="income" type="number" step="0.01" />
+          </div>
+          <div class="col">
+            <label for="loanType">Loan Type</label>
+            <select id="loanType">
+              <option value="Housing Loan">Housing Loan</option>
+              <option value="Personal Loan">Personal Loan</option>
+              <option value="Car Loan">Car Loan</option>
+              <option value="Refinance">Refinance</option>
+            </select>
+          </div>
+          <div class="col">
+            <label for="loanAmount">Loan Amount (RM)</label>
+            <input id="loanAmount" type="number" step="0.01" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="bank">Bank</label>
+            <input id="bank" type="text" />
+          </div>
+          <div class="col">
+            <label for="bankerName">Banker Name</label>
+            <input id="bankerName" type="text" />
+          </div>
+          <div class="col">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col" style="flex:2 1 400px">
+            <label for="notes">Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+          <div class="col" style="flex:1 1 220px">
+            <label for="attachment">Attachment (pdf, docx, zip, images)</label>
+            <input id="attachment" type="file" accept=".pdf,.doc,.docx,.zip,.rar,image/*" />
+            <div class="note">Attach one file. Max recommended: 20MB (depending on your Supabase storage limits).</div>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-top:10px;">
+          <button id="saveBtn" type="submit">Save Client</button>
+          <button id="cancelEdit" type="button" class="secondary">Clear</button>
+          <div class="muted" id="formMsg" style="margin-left:10px"></div>
+        </div>
+      </form>
+    </div>
+
+    <!-- List & Search -->
+    <div class="card">
+      <h2>Loan Clients</h2>
+
+      <div class="search">
+        <input id="searchLoan" placeholder="Search by name, bank, loan type, banker or status" style="flex:1;padding:10px;border-radius:8px;border:1px solid #ddd;background:#fff" />
+        <button id="searchBtn">Search</button>
+        <button id="refreshBtn" class="secondary">Refresh</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="loanTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Income</th>
+              <th>Loan Type</th>
+              <th>Amount</th>
+              <th>Bank</th>
+              <th>Banker</th>
+              <th>Status</th>
+              <th>Attachment</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="loanTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- script -->
+  <script src="loancrm.js"></script>
 </body>
 </html>
 
