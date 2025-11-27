@@ -1,17 +1,18 @@
 /*******************************
  * loancrm.js
- * Supabase-backed Bank Loan CRM (view toggles added)
+ * Bank Loan CRM with page toggles
  *******************************/
 
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
 
 const LOAN_TABLE = "loan_clients";
 const LOAN_BUCKET = "loan-attachments";
 
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* --- UI elements --- */
+/* UI Elements */
 const loanForm = document.getElementById("loanForm");
 const loanTableBody = document.getElementById("loanTableBody");
 const searchLoan = document.getElementById("searchLoan");
@@ -26,23 +27,24 @@ const formTitle = document.getElementById("formTitle");
 
 let editingId = null;
 
-/* ---------------------------
-   Utility helpers
-   --------------------------- */
+/* Helpers */
 function safeFilename(name) {
   return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 }
+
 function fmtCurrency(v) {
-  if (v === null || v === undefined || v === "") return "";
-  return Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (!v) return "";
+  return Number(v).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
-/* ---------------------------
-   Show / Hide Views
-   --------------------------- */
+/* Toggle Views */
 function showForm(editing = false) {
   listCard.style.display = "none";
   formCard.style.display = "block";
+
   if (editing) {
     formTitle.textContent = "Edit Loan Client";
   } else {
@@ -54,36 +56,29 @@ function showForm(editing = false) {
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 function showList() {
   formCard.style.display = "none";
   listCard.style.display = "block";
-  // refresh list
   fetchLoanClients();
 }
 
-/* ---------------------------
-   Fetch & render
-   --------------------------- */
+/* Fetch */
 async function fetchLoanClients(query = "") {
-  if (!loanTableBody) return;
-  loanTableBody.innerHTML = "<tr><td colspan='12' class='muted'>Loading…</td></tr>";
+  loanTableBody.innerHTML = "<tr><td colspan='12'>Loading...</td></tr>";
 
   const { data, error } = await supabase
     .from(LOAN_TABLE)
     .select("*")
     .order("id", { ascending: false });
 
-  if (error) {
-    loanTableBody.innerHTML = `<tr><td colspan='12' class='muted'>Failed to load: ${error.message}</td></tr>`;
-    console.error(error);
-    return;
-  }
+  if (error) return;
 
-  let items = data || [];
+  let items = data;
 
   if (query) {
     const q = query.toLowerCase();
-    items = items.filter(r =>
+    items = items.filter((r) =>
       (r.client_name || "").toLowerCase().includes(q) ||
       (r.bank || "").toLowerCase().includes(q) ||
       (r.loan_type || "").toLowerCase().includes(q) ||
@@ -92,173 +87,129 @@ async function fetchLoanClients(query = "") {
     );
   }
 
-  if (!items.length) {
-    loanTableBody.innerHTML = "<tr><td colspan='12' class='muted'>No clients found</td></tr>";
-    return;
-  }
-
   loanTableBody.innerHTML = "";
-  items.forEach(row => {
-    const attachLink = row.attachment_path ? createPublicUrl(row.attachment_path) : "";
-    const attachmentCell = attachLink ? `<a class="file-link" href="${attachLink}" target="_blank">View</a>` : "";
+
+  items.forEach((row) => {
+    const file = row.attachment_path
+      ? supabase.storage.from(LOAN_BUCKET).getPublicUrl(row.attachment_path)
+          .data.publicUrl
+      : "";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${row.client_name || ""}</td>
+      <td>${row.client_name}</td>
       <td>${row.phone || ""}</td>
       <td>${row.email || ""}</td>
-      <td>${row.income ? fmtCurrency(row.income) : ""}</td>
-      <td>${row.loan_type || ""}</td>
-      <td>${row.loan_amount ? fmtCurrency(row.loan_amount) : ""}</td>
+      <td>${fmtCurrency(row.income)}</td>
+      <td>${row.loan_type}</td>
+      <td>${fmtCurrency(row.loan_amount)}</td>
       <td>${row.bank || ""}</td>
       <td>${row.banker_name || ""}</td>
-      <td>${row.status || ""}</td>
-      <td>${attachmentCell}</td>
-      <td>${(row.notes || "").slice(0,120)}</td>
+      <td>${row.status}</td>
+      <td>${file ? `<a href="${file}" target="_blank">View</a>` : ""}</td>
+      <td>${(row.notes || "").slice(0, 100)}</td>
+
       <td>
         <button onclick="onEditLoan(${row.id})">Edit</button>
-        <button onclick="onDeleteLoan(${row.id})" class="secondary">Delete</button>
+        <button class="secondary" onclick="onDeleteLoan(${row.id})">Delete</button>
       </td>
     `;
     loanTableBody.appendChild(tr);
   });
 }
 
-/* ---------------------------
-   File helpers
-   --------------------------- */
-function createPublicUrl(path) {
-  try {
-    const res = supabase.storage.from(LOAN_BUCKET).getPublicUrl(path);
-    return res?.data?.publicUrl || "";
-  } catch (e) {
-    return "";
-  }
-}
-
+/* Upload File */
 async function uploadAttachment(file) {
   if (!file) return null;
-  const safe = `${Date.now()}_${safeFilename(file.name)}`;
-  const { data, error } = await supabase.storage.from(LOAN_BUCKET).upload(safe, file, { upsert: false });
+
+  const filename = Date.now() + "_" + safeFilename(file.name);
+
+  const { data, error } = await supabase.storage
+    .from(LOAN_BUCKET)
+    .upload(filename, file);
+
   if (error) throw error;
-  return data?.path || safe;
+  return data.path;
 }
 
-/* ---------------------------
-   Form submit - create or update
-   --------------------------- */
-loanForm.addEventListener("submit", async (ev) => {
-  ev.preventDefault();
-  formMsg.textContent = "";
-
-  const clientName = document.getElementById("clientName").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const income = document.getElementById("income").value || null;
-  const loanType = document.getElementById("loanType").value;
-  const loanAmount = document.getElementById("loanAmount").value || null;
-  const bank = document.getElementById("bank").value.trim();
-  const bankerName = document.getElementById("bankerName").value.trim();
-  const status = document.getElementById("status").value;
-  const notes = document.getElementById("notes").value.trim();
-
-  const inputFile = document.getElementById("attachment");
-  let attachmentPath = null;
-  if (inputFile && inputFile.files && inputFile.files[0]) {
-    try {
-      formMsg.textContent = "Uploading file...";
-      attachmentPath = await uploadAttachment(inputFile.files[0]);
-    } catch (err) {
-      console.error(err);
-      return alert("File upload failed: " + (err.message || err));
-    }
-  }
+/* Save Form */
+loanForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
   const payload = {
-    client_name: clientName,
-    phone,
-    email,
-    income: income ? Number(income) : null,
-    loan_type: loanType,
-    loan_amount: loanAmount ? Number(loanAmount) : null,
-    bank,
-    banker_name: bankerName,
-    status,
-    notes,
+    client_name: clientName.value,
+    phone: phone.value,
+    email: email.value,
+    income: Number(income.value) || null,
+    loan_type: loanType.value,
+    loan_amount: Number(loanAmount.value) || null,
+    bank: bank.value,
+    banker_name: bankerName.value,
+    status: status.value,
+    notes: notes.value,
   };
-  if (attachmentPath) payload.attachment_path = attachmentPath;
 
-  try {
-    if (editingId) {
-      formMsg.textContent = "Saving changes...";
-      const { error } = await supabase.from(LOAN_TABLE).update(payload).eq("id", editingId);
-      if (error) throw error;
-      formMsg.textContent = "Updated successfully";
-    } else {
-      formMsg.textContent = "Saving client...";
-      const { error } = await supabase.from(LOAN_TABLE).insert([payload]);
-      if (error) throw error;
-      formMsg.textContent = "Saved";
-    }
-    loanForm.reset();
-    editingId = null;
-    document.getElementById("loanEditId").value = "";
-    // go back to list after save
-    showList();
-    setTimeout(() => formMsg.textContent = "", 2500);
-  } catch (err) {
-    console.error(err);
-    alert("Save failed: " + (err.message || err));
-    formMsg.textContent = "";
+  const file = attachment.files[0];
+  if (file) {
+    payload.attachment_path = await uploadAttachment(file);
   }
+
+  if (editingId) {
+    await supabase.from(LOAN_TABLE).update(payload).eq("id", editingId);
+  } else {
+    await supabase.from(LOAN_TABLE).insert([payload]);
+  }
+
+  showList();
 });
 
-/* ---------------------------
-   Edit / Delete handlers
-   --------------------------- */
-window.onEditLoan = async function(id) {
-  const { data, error } = await supabase.from(LOAN_TABLE).select("*").eq("id", id).single();
-  if (error || !data) {
-    return alert("Failed to load record: " + (error?.message || ""));
-  }
+/* Edit */
+window.onEditLoan = async (id) => {
+  const { data } = await supabase
+    .from(LOAN_TABLE)
+    .select("*")
+    .eq("id", id)
+    .single();
+
   editingId = id;
-  document.getElementById("loanEditId").value = id;
-  document.getElementById("clientName").value = data.client_name || "";
-  document.getElementById("phone").value = data.phone || "";
-  document.getElementById("email").value = data.email || "";
-  document.getElementById("income").value = data.income ?? "";
-  document.getElementById("loanType").value = data.loan_type || "Housing Loan";
-  document.getElementById("loanAmount").value = data.loan_amount ?? "";
-  document.getElementById("bank").value = data.bank || "";
-  document.getElementById("bankerName").value = data.banker_name || "";
-  document.getElementById("status").value = data.status || "New";
-  document.getElementById("notes").value = data.notes || "";
-  formMsg.textContent = data.attachment_path ? "Record has existing attachment" : "";
+
+  clientName.value = data.client_name;
+  phone.value = data.phone;
+  email.value = data.email;
+  income.value = data.income;
+  loanType.value = data.loan_type;
+  loanAmount.value = data.loan_amount;
+  bank.value = data.bank;
+  bankerName.value = data.banker_name;
+  status.value = data.status;
+  notes.value = data.notes;
+
   showForm(true);
 };
 
-window.onDeleteLoan = async function(id) {
-  if (!confirm("Delete this client? This cannot be undone.")) return;
-  const { error } = await supabase.from(LOAN_TABLE).delete().eq("id", id);
-  if (error) {
-    console.error(error);
-    return alert("Delete failed: " + error.message);
-  }
-  await fetchLoanClients();
+/* Delete */
+window.onDeleteLoan = async (id) => {
+  if (!confirm("Delete this record?")) return;
+  await supabase.from(LOAN_TABLE).delete().eq("id", id);
+  fetchLoanClients();
 };
 
-/* ---------------------------
-   Search / refresh / clear
-   --------------------------- */
-searchBtn.addEventListener("click", () => fetchLoanClients(searchLoan.value || ""));
-refreshBtn.addEventListener("click", () => { searchLoan.value = ""; fetchLoanClients(); });
-cancelEdit.addEventListener("click", () => { loanForm.reset(); editingId = null; document.getElementById("loanEditId").value=""; formMsg.textContent=""; });
+/* Search */
+searchBtn.addEventListener("click", () => fetchLoanClients(searchLoan.value));
+refreshBtn.addEventListener("click", () => {
+  searchLoan.value = "";
+  fetchLoanClients();
+});
 
-/* ---------------------------
-   initial load
-   --------------------------- */
+/* Clear Form */
+cancelEdit.addEventListener("click", () => {
+  loanForm.reset();
+  editingId = null;
+});
+
+/* Initial Load */
 document.addEventListener("DOMContentLoaded", () => {
-  // show list view by default
   showList();
 });
+
 
