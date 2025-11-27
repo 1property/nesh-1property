@@ -154,7 +154,20 @@
   <div class="nav">
     <a href="index.html">🏡 Home</a>
     <a href="crm.html">🔒 Agent CRM</a>
+    <a href="#" onclick="loanLogin()">🔑 Loan CRM</a>
   </div>
+  
+   <!-- Loan CRM password prompt -->
+  <script>
+    function loanLogin() {
+      const pass = prompt("Enter Loan CRM Password:");
+      if (pass === "loan369") {
+        window.location.href = "loan-crm.html";
+      } else if (pass !== null) {
+        alert("❌ Wrong password");
+      }
+    }
+  </script>
 
   <div class="intro">
     <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
@@ -505,4 +518,5 @@
   </a>
 </body>
 </html>
+
 
