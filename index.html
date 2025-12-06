@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nesh Property</title>
 
   <!-- Google Fonts -->
@@ -17,19 +18,48 @@
       background-color: #f7f7f7;
       color: #333;
     }
+
     header {
       background-color: #003366;
       padding: 1.5rem 0;
       text-align: center;
       color: white;
     }
-    header img { width: 160px; margin-bottom: 0.5rem; }
-    .nav-links .btn { margin: 0.25rem; }
-    .intro { background: white; padding: 2rem; text-align: center; margin-bottom: 2rem; border-radius: 10px; }
-    .property-card { transition: transform 0.3s; }
-    .property-card:hover { transform: translateY(-5px); }
-    .calculator { margin-top: 1rem; }
-    .calculator-result { font-weight: bold; color: #003366; }
+
+    header img {
+      width: 160px;
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-links .btn {
+      margin: 0.25rem;
+    }
+
+    .intro {
+      background: white;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      border-radius: 10px;
+    }
+
+    .property-card {
+      transition: transform 0.3s;
+    }
+
+    .property-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .calculator {
+      margin-top: 1rem;
+    }
+
+    .calculator-result {
+      font-weight: bold;
+      color: #003366;
+    }
+
     .whatsapp-float {
       position: fixed;
       bottom: 20px;
@@ -42,12 +72,17 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       z-index: 1000;
     }
-    .whatsapp-float img { width: 30px; height: 30px; }
+
+    .whatsapp-float img {
+      width: 30px;
+      height: 30px;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- Header -->
@@ -79,7 +114,8 @@
     <p>🏡 I'm your trusted <strong>Property & Bank Loan Consultant</strong> at Nesh Property.</p>
     <p>Saya adalah <strong>Perunding Hartanah & Pinjaman Bank</strong> anda dari Nesh Property.</p>
     <p>REN No: 76546</p>
-    <p class="contact">📲 <a href="https://wa.me/60123386162" target="_blank" class="text-success text-decoration-none">WhatsApp Me: +6012-3386162</a></p>
+    <p class="contact">📲 <a href="https://wa.me/60123386162" target="_blank"
+        class="text-success text-decoration-none">WhatsApp Me: +6012-3386162</a></p>
   </div>
 
   <!-- Property Listings -->
@@ -89,21 +125,26 @@
       <!-- Property Card Example -->
       <div class="col-sm-6 col-lg-4">
         <div class="card property-card h-100 shadow-sm">
-          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang" style="height:200px; object-fit:cover;">
+          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang"
+            style="height:200px; object-fit:cover;">
           <div class="card-body">
             <h5 class="card-title text-primary">Double Storey - Klang</h5>
             <p class="card-text mb-1">💰 RM330,000</p>
             <p class="card-text mb-1">📍 Taman Sungai Kapar Indah</p>
             <p class="card-text mb-1">🏠 980sqft | 🛏 3 Bed | 🚿 1 Bath</p>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
 
             <!-- Loan Calculator -->
             <div>
               <button class="btn btn-link p-0 mt-2" onclick="toggleCalculator(this)">📊 Show Loan Calculator</button>
               <div class="calculator" style="display:none;">
-                <input type="number" value="330000" class="form-control mb-2 loan-amount" placeholder="Loan Amount (RM)">
-                <input type="number" value="4.0" class="form-control mb-2 interest-rate" placeholder="Interest Rate (%)">
+                <input type="number" value="330000" class="form-control mb-2 loan-amount"
+                  placeholder="Loan Amount (RM)">
+                <input type="number" value="4.0" class="form-control mb-2 interest-rate"
+                  placeholder="Interest Rate (%)">
                 <input type="number" value="30" class="form-control mb-2 loan-years" placeholder="Loan Tenure (Years)">
                 <button class="btn btn-outline-primary btn-sm mb-2" onclick="calculateLoan(this)">Calculate</button>
                 <p class="calculator-result"></p>
@@ -114,21 +155,26 @@
       </div>
       <div class="col-sm-6 col-lg-4">
         <div class="card property-card h-100 shadow-sm">
-          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang" style="height:200px; object-fit:cover;">
+          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang"
+            style="height:200px; object-fit:cover;">
           <div class="card-body">
             <h5 class="card-title text-primary">Double Storey - Klang</h5>
             <p class="card-text mb-1">💰 RM330,000</p>
             <p class="card-text mb-1">📍 Taman Sungai Kapar Indah</p>
             <p class="card-text mb-1">🏠 980sqft | 🛏 3 Bed | 🚿 1 Bath</p>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
 
             <!-- Loan Calculator -->
             <div>
               <button class="btn btn-link p-0 mt-2" onclick="toggleCalculator(this)">📊 Show Loan Calculator</button>
               <div class="calculator" style="display:none;">
-                <input type="number" value="330000" class="form-control mb-2 loan-amount" placeholder="Loan Amount (RM)">
-                <input type="number" value="4.0" class="form-control mb-2 interest-rate" placeholder="Interest Rate (%)">
+                <input type="number" value="330000" class="form-control mb-2 loan-amount"
+                  placeholder="Loan Amount (RM)">
+                <input type="number" value="4.0" class="form-control mb-2 interest-rate"
+                  placeholder="Interest Rate (%)">
                 <input type="number" value="30" class="form-control mb-2 loan-years" placeholder="Loan Tenure (Years)">
                 <button class="btn btn-outline-primary btn-sm mb-2" onclick="calculateLoan(this)">Calculate</button>
                 <p class="calculator-result"></p>
@@ -139,21 +185,26 @@
       </div>
       <div class="col-sm-6 col-lg-4">
         <div class="card property-card h-100 shadow-sm">
-          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang" style="height:200px; object-fit:cover;">
+          <img src="property1.jpg" class="card-img-top" alt="Double Storey - Klang"
+            style="height:200px; object-fit:cover;">
           <div class="card-body">
             <h5 class="card-title text-primary">Double Storey - Klang</h5>
             <p class="card-text mb-1">💰 RM330,000</p>
             <p class="card-text mb-1">📍 Taman Sungai Kapar Indah</p>
             <p class="card-text mb-1">🏠 980sqft | 🛏 3 Bed | 🚿 1 Bath</p>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
-            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah" target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I'm%20interested%20to%20book%20a%20viewing%20for%20Double%20Storey%20at%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-success btn-sm">📅 Book Viewing</a>
+            <a href="https://wa.me/60123386162?text=Hi%2C%20I%20want%20more%20info%20about%20Double%20Storey%20in%20Taman%20Sungai%20Kapar%20Indah"
+              target="_blank" class="btn btn-primary btn-sm">ℹ️ More Info</a>
 
             <!-- Loan Calculator -->
             <div>
               <button class="btn btn-link p-0 mt-2" onclick="toggleCalculator(this)">📊 Show Loan Calculator</button>
               <div class="calculator" style="display:none;">
-                <input type="number" value="330000" class="form-control mb-2 loan-amount" placeholder="Loan Amount (RM)">
-                <input type="number" value="4.0" class="form-control mb-2 interest-rate" placeholder="Interest Rate (%)">
+                <input type="number" value="330000" class="form-control mb-2 loan-amount"
+                  placeholder="Loan Amount (RM)">
+                <input type="number" value="4.0" class="form-control mb-2 interest-rate"
+                  placeholder="Interest Rate (%)">
                 <input type="number" value="30" class="form-control mb-2 loan-years" placeholder="Loan Tenure (Years)">
                 <button class="btn btn-outline-primary btn-sm mb-2" onclick="calculateLoan(this)">Calculate</button>
                 <p class="calculator-result"></p>
@@ -188,7 +239,9 @@
 
   <!-- Google Form Embed -->
   <div class="container my-4">
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true" width="100%" height="800" style="border:none;"></iframe>
+    <iframe
+      src="https://docs.google.com/forms/d/e/1FAIpQLSdCEDLGK6fH6bJBGBRDaibVOOhO8yarJzxh2y55U3jlaBCi1Q/viewform?embedded=true"
+      width="100%" height="800" style="border:none;"></iframe>
   </div>
 
   <div class="text-center text-muted mb-4">Page in English & Bahasa Melayu</div>
@@ -201,4 +254,5 @@
   <!-- Bootstrap 5 JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
