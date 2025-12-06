@@ -1,8 +1,10 @@
-/*************************************************************
- *  script.js - Minimal, compatible version for your HTML
- *************************************************************/
+// script.js
+/***********************************************
+ * Rebuilt script.js - ES6, Bootstrap modals/toasts
+ * Preserves original Supabase behavior (CRUD + uploads)
+ ***********************************************/
 
-/* Supabase config */
+/* ---------- Supabase config (kept from your input) ---------- */
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
 const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
@@ -12,402 +14,595 @@ const SELLER_TABLE = "sellers";
 const RENT_TABLE = "rentinfo";
 const RENT_BUCKET = "rent-attachments";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ---------- Helper: safe getElement ---------- */
-function $id(id) {
-  return document.getElementById(id);
+/* ---------- Helper ---------- */
+const $ = (id) => document.getElementById(id);
+
+function toast(message, opts = {}) {
+  const container = document.getElementById("toastContainer");
+  const id = "t" + Date.now();
+  const el = document.createElement("div");
+  el.className = "toast align-items-center text-white bg-" + (opts.type || "primary") + " border-0 mb-2";
+  el.role = "alert";
+  el.ariaLive = "assertive";
+  el.ariaAtomic = "true";
+  el.id = id;
+  el.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  `;
+  container.appendChild(el);
+  const btoast = new bootstrap.Toast(el, { delay: opts.delay || 4000 });
+  btoast.show();
+  el.addEventListener("hidden.bs.toast", () => el.remove());
 }
 
-/* ---------- FETCH BUYER / SELLER ---------- */
-/**
- * fetchData(query, table)
- * - query: string to filter (client-side)
- * - table: BUYER_TABLE or SELLER_TABLE
- */
-async function fetchData(query = "", table = BUYER_TABLE) {
-  try {
-    const { data, error } = await supabaseClient
-      .from(table)
-      .select("*")
-      .order("id", { ascending: false });
+/* ---------- Modal instances ---------- */
+const buyerModalEl = document.getElementById("buyerModal");
+const buyerModal = new bootstrap.Modal(buyerModalEl);
+const sellerModalEl = document.getElementById("sellerModal");
+const sellerModal = new bootstrap.Modal(sellerModalEl);
+const rentModalEl = document.getElementById("rentModal");
+const rentModal = new bootstrap.Modal(rentModalEl);
+const confirmDeleteModalEl = document.getElementById("confirmDeleteModal");
+const confirmDeleteModal = new bootstrap.Modal(confirmDeleteModalEl);
 
-    if (error) {
-      console.error("fetchData error:", error);
-      alert("❌ Failed to load data: " + error.message);
-      return;
-    }
+/* ---------- App State ---------- */
+let deleteContext = null; // { table, id }
+let currentView = "tablePage";
 
-    const list = Array.isArray(data) ? data : [];
+/* ---------- Utilities ---------- */
+function safeFilename(name) {
+  return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+}
 
-    // client-side filter (keeps your existing simple search behavior)
-    const q = (query || "").toLowerCase().trim();
-    const filtered = q
-      ? list.filter((r) =>
-          (
-            (r.name || "") +
-            " " +
-            (r.location || "") +
-            " " +
-            (r.status || "")
-          )
-            .toLowerCase()
-            .includes(q)
-        )
-      : list;
+/* ---------- Upload helper (rent attachments only) ---------- */
+async function uploadAttachmentToBucket(file) {
+  if (!file) return null;
+  const filename = `rent_${Date.now()}_${safeFilename(file.name)}`;
+  const { data, error } = await sb.storage.from(RENT_BUCKET).upload(filename, file);
+  if (error) throw error;
+  return data.path;
+}
 
-    const tableBody =
-      table === SELLER_TABLE ? $id("seller-table-body") : $id("data-table-body");
-    if (!tableBody) return;
+/* ---------- Fetch and render buyers/sellers ---------- */
+async function fetchBuyerData(query = "") {
+  // show simple loading
+  const tbody = $("buyer-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">Loading…</td></tr>`;
 
-    tableBody.innerHTML = "";
-
-    if (!filtered.length) {
-      tableBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
-      return;
-    }
-
-    filtered.forEach((row) => {
-      const tr = document.createElement("tr");
-
-      // Keep exactly the columns your HTML expects
-      tr.innerHTML = `
-        <td>${row.name || ""}</td>
-        <td>${row.phone || ""}</td>
-        <td>${row.email || ""}</td>
-        <td>${row.location || ""}</td>
-        <td>${row.property || ""}</td>
-        <td>${row.source || ""}</td>
-        <td>${row.followup || ""}</td>
-        <td>${row.status || ""}</td>
-        <td>${row.notes || ""}</td>
-        <td>
-          <button onclick="editProperty(${row.id}, '${table}')">Edit</button>
-          <button onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
-        </td>
-      `;
-      tableBody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("fetchData exception:", err);
-    alert("❌ Failed to load data (exception). See console.");
+  const { data, error } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Failed to load</td></tr>`;
+    console.error("fetchBuyerData error:", error);
+    toast("Failed to load data", { type: "danger" });
+    return;
   }
+
+  const list = Array.isArray(data) ? data : [];
+  const q = (query || "").toLowerCase().trim();
+  const filtered = q ? list.filter(r => ((r.name || "") + " " + (r.location || "") + " " + (r.status || "")).toLowerCase().includes(q)) : list;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-muted">No records found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  filtered.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.name || ""}</td>
+      <td>${row.phone || ""}</td>
+      <td>${row.email || ""}</td>
+      <td>${row.location || ""}</td>
+      <td>${row.property || ""}</td>
+      <td>${row.source || ""}</td>
+      <td>${row.followup || ""}</td>
+      <td>${row.status || ""}</td>
+      <td>${(row.notes || "").slice(0, 80)}</td>
+      <td>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary btn-edit-buyer" data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-buyer" data-id="${row.id}">Delete</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
-/* ---------- ADD / UPDATE BUYER + SELLER ---------- */
-$id("addForm").addEventListener("submit", async function (e) {
+/* ---------- Fetch and render sellers ---------- */
+async function fetchSellerData(query = "") {
+  // show simple loading
+  const tbody = $("seller-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">Loading…</td></tr>`;
+
+  const { data, error } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-danger">Failed to load</td></tr>`;
+    console.error("fetchSellerData error:", error);
+    toast("Failed to load data", { type: "danger" });
+    return;
+  }
+
+  const list = Array.isArray(data) ? data : [];
+  const q = (query || "").toLowerCase().trim();
+  const filtered = q ? list.filter(r => ((r.name || "") + " " + (r.location || "") + " " + (r.status || "")).toLowerCase().includes(q)) : list;
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="text-muted">No records found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  filtered.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.name || ""}</td>
+      <td>${row.phone || ""}</td>
+      <td>${row.email || ""}</td>
+      <td>${row.location || ""}</td>
+      <td>${row.property || ""}</td>
+      <td>${row.source || ""}</td>
+      <td>${row.followup || ""}</td>
+      <td>${row.status || ""}</td>
+      <td>${(row.notes || "").slice(0, 80)}</td>
+      <td>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-seller" data-id="${row.id}">Delete</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- Add / Update Listing ---------- */
+async function saveBuyer(e) {
   e.preventDefault();
+  const buyerRecordIdEl = $("buyerRecordId");
+  const buyerRecordId = buyerRecordIdEl ? buyerRecordIdEl.value : "";
+
+  const payload = {
+    name: $("buyer_name").value || "",
+    phone: $("buyer_phone").value || "",
+    email: $("buyer_email").value || "",
+    location: $("buyer_location").value || "",
+    property: $("buyer_property").value || "",
+    source: $("buyer_source").value || "",
+    followup: $("buyer_followUp").value || null,
+    status: $("buyer_status").value || "",
+    notes: $("buyer_notes").value || ""
+  };
 
   try {
-    // read values safely from DOM
-    const listingTypeVal = $id("listingType").value;
-    const selectedTable = listingTypeVal === "seller" ? SELLER_TABLE : BUYER_TABLE;
-
-    const formData = {
-      name: $id("name").value || "",
-      phone: $id("phone").value || "",
-      email: $id("email").value || "",
-      location: $id("location").value || "",
-      property: $id("property").value || "",
-      source: $id("source").value || "",
-      followup: $id("followUp").value || null, // matches your Supabase column name
-      status: $id("status").value || "",
-      notes: $id("notes").value || "",
-    };
-
-    const recordIdEl = $id("recordId");
-    const recordId = recordIdEl ? recordIdEl.value : "";
-
-    let result;
-    if (recordId) {
-      result = await supabaseClient.from(selectedTable).update(formData).eq("id", recordId);
+    if (buyerRecordId) {
+      const { error } = await sb.from(BUYER_TABLE).update(payload).eq("id", buyerRecordId);
+      if (error) throw error;
+      toast("Buyer updated", { type: "success" });
     } else {
-      result = await supabaseClient.from(selectedTable).insert([formData]);
+      const { error } = await sb.from(BUYER_TABLE).insert([payload]);
+      if (error) throw error;
+      toast("Buyer created", { type: "success" });
     }
-
-    if (result.error) {
-      console.error("save error:", result.error);
-      return alert("❌ Error saving: " + result.error.message);
-    }
-
-    // clear form + recordId
-    if (recordIdEl) recordIdEl.value = "";
-    $id("addForm").reset();
-
-    // refresh both lists (keeps UI consistent)
-    fetchData("", BUYER_TABLE);
-    fetchData("", SELLER_TABLE);
-
-    // show appropriate page
-    showPage(selectedTable === SELLER_TABLE ? "sellerPage" : "tablePage");
+    // reset form & reload
+    $("buyerForm").reset();
+    if (buyerRecordIdEl) buyerRecordIdEl.value = "";
+    buyerModal.hide();
+    fetchBuyerData();
+    fetchSellerData();
+    showPage("buyerPage");
   } catch (err) {
-    console.error("save exception:", err);
-    alert("❌ Failed to save (exception). See console.");
-  }
-});
-
-/* ---------- EDIT BUYER/SELLER ---------- */
-async function editProperty(id, tableUsed) {
-  try {
-    const { data, error } = await supabaseClient.from(tableUsed).select("*").eq("id", id).single();
-    if (error) {
-      console.error("editProperty error:", error);
-      return alert("❌ Error loading record: " + (error.message || ""));
-    }
-    // populate fields
-    if ($id("recordId")) $id("recordId").value = id;
-    if ($id("name")) $id("name").value = data.name || "";
-    if ($id("phone")) $id("phone").value = data.phone || "";
-    if ($id("email")) $id("email").value = data.email || "";
-    if ($id("location")) $id("location").value = data.location || "";
-    if ($id("property")) $id("property").value = data.property || "";
-    if ($id("source")) $id("source").value = data.source || "";
-    if ($id("followUp")) $id("followUp").value = data.followup || "";
-    if ($id("status")) $id("status").value = data.status || "";
-    if ($id("notes")) $id("notes").value = data.notes || "";
-    if ($id("listingType")) $id("listingType").value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
-
-    showPage("formPage");
-  } catch (err) {
-    console.error("editProperty exception:", err);
-    alert("❌ Error loading record (exception). See console.");
+    console.error("save buyer error:", err);
+    toast("Failed to save buyer", { type: "danger" });
   }
 }
 
-/* Make editProperty global so onclick="" works from generated buttons */
-window.editProperty = editProperty;
-
-/* ---------- DELETE BUYER/SELLER ---------- */
-async function deleteProperty(id, tableUsed) {
-  if (!confirm("Delete this record?")) return;
-  try {
-    const { error } = await supabaseClient.from(tableUsed).delete().eq("id", id);
-    if (error) {
-      console.error("deleteProperty error:", error);
-      return alert("❌ Error deleting: " + error.message);
-    }
-    fetchData("", tableUsed);
-  } catch (err) {
-    console.error("deleteProperty exception:", err);
-    alert("❌ Failed to delete (exception). See console.");
-  }
-}
-window.deleteProperty = deleteProperty;
-
-/* ---------- SEARCH HELPERS ---------- */
-function searchProperties() {
-  const q = ($id("searchInput") && $id("searchInput").value) || "";
-  fetchData(q, BUYER_TABLE);
-}
-window.searchProperties = searchProperties;
-
-function searchSellers() {
-  const q = ($id("searchSeller") && $id("searchSeller").value) || "";
-  fetchData(q, SELLER_TABLE);
-}
-window.searchSellers = searchSellers;
-
-/* ---------- PAGE SWITCH ---------- */
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => (p.style.display = "none"));
-  const el = $id(pageId);
-  if (el) el.style.display = "block";
-}
-window.showPage = showPage;
-
-/* ---------- RENT SECTION ---------- */
-async function fetchRentData(query = "") {
-  try {
-    const tbody = $id("rent-table-body");
-    if (!tbody) return;
-
-    const { data, error } = await supabaseClient
-      .from(RENT_TABLE)
-      .select("*")
-      .order("id", { ascending: false });
-
-    if (error) {
-      console.error("fetchRentData error:", error);
-      tbody.innerHTML = "<tr><td colspan='8'>Failed to load rent data</td></tr>";
-      return;
-    }
-
-    let list = Array.isArray(data) ? data : [];
-    const q = (query || "").toLowerCase().trim();
-    if (q) {
-      list = list.filter((r) =>
-        (
-          (r.tenant_name || "") +
-          " " +
-          (r.property_address || "") +
-          " " +
-          (r.status || "")
-        )
-          .toLowerCase()
-          .includes(q)
-      );
-    }
-
-    if (!list.length) {
-      tbody.innerHTML = "<tr><td colspan='8'>No rent records found</td></tr>";
-      return;
-    }
-
-    tbody.innerHTML = "";
-    list.forEach((row) => {
-      let due = row.due_date || "";
-      let attachmentHtml = "";
-      if (row.attachment_path) {
-        try {
-          const url = supabaseClient.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
-          attachmentHtml = `<a href="${url}" target="_blank">View</a>`;
-        } catch (e) {
-          attachmentHtml = "";
-        }
-      }
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.tenant_name || ""}</td>
-        <td>${row.property_address || ""}</td>
-        <td>${row.monthly_rent || ""}</td>
-        <td>${due}</td>
-        <td>${row.tenant_contact || ""}</td>
-        <td>${row.status || ""}</td>
-        <td>${attachmentHtml}</td>
-        <td>
-          <button onclick="editRent(${row.id})">Edit</button>
-          <button onclick="deleteRent(${row.id})">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (err) {
-    console.error("fetchRentData exception:", err);
-    $id("rent-table-body").innerHTML = "<tr><td colspan='8'>Failed to load rent data (exception)</td></tr>";
-  }
-}
-window.fetchRentData = fetchRentData;
-
-/* rent search wrapper */
-function searchRentData() {
-  const q = ($id("searchRent") && $id("searchRent").value) || "";
-  fetchRentData(q);
-}
-window.searchRentData = searchRentData;
-
-/* ADD / UPDATE RENT */
-$id("rentForm")?.addEventListener("submit", async function (e) {
+/* ---------- Add / Update Seller ---------- */
+async function saveSeller(e) {
   e.preventDefault();
+  const sellerRecordIdEl = $("sellerRecordId");
+  const sellerRecordId = sellerRecordIdEl ? sellerRecordIdEl.value : "";
+
+  const payload = {
+    name: $("seller_name").value || "",
+    phone: $("seller_phone").value || "",
+    email: $("seller_email").value || "",
+    location: $("seller_location").value || "",
+    property: $("seller_property").value || "",
+    source: $("seller_source").value || "",
+    followup: $("seller_followUp").value || null,
+    status: $("seller_status").value || "",
+    notes: $("seller_notes").value || ""
+  };
+
   try {
-    const tenantNameVal = $id("tenantName").value || "";
-    const propertyAddressVal = $id("propertyAddress").value || "";
-    const monthlyRentVal = $id("monthlyRent").value || "";
-    const rentDueDateVal = $id("rentDueDate").value || "";
-    const tenantContactVal = $id("tenantContact").value || "";
-
-    let attachmentPath = null;
-    const fileInput = $id("rentAttachment");
-    if (fileInput && fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-      const safeName = "rent_" + Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-      const upload = await supabaseClient.storage.from(RENT_BUCKET).upload(safeName, file);
-      if (upload.error) {
-        console.error("upload error:", upload.error);
-        return alert("❌ Failed to upload attachment: " + upload.error.message);
-      }
-      attachmentPath = upload.data.path;
+    if (sellerRecordId) {
+      const { error } = await sb.from(SELLER_TABLE).update(payload).eq("id", sellerRecordId);
+      if (error) throw error;
+      toast("Listing updated", { type: "success" });
+    } else {
+      const { error } = await sb.from(SELLER_TABLE).insert([payload]);
+      if (error) throw error;
+      toast("Listing created", { type: "success" });
     }
+    // reset form & reload
+    $("sellerForm").reset();
+    if (sellerRecordIdEl) sellerRecordIdEl.value = "";
+    sellerModal.hide();
+    fetchBuyerData();
+    fetchSellerData();
+    showPage("sellerPage");
+  } catch (err) {
+    console.error("save seller error:", err);
+    toast("Failed to save seller", { type: "danger" });
+  }
+}
 
-    const rentRecord = {
-      tenant_name: tenantNameVal,
-      property_address: propertyAddressVal,
-      monthly_rent: monthlyRentVal,
-      due_date: rentDueDateVal,
-      tenant_contact: tenantContactVal,
-      attachment_path: attachmentPath,
-    };
+/* ---------- Edit Buyer (populate modal) ---------- */
+async function editBuyer(id) {
+  try {
+    const { data, error } = await sb.from(BUYER_TABLE).select("*").eq("id", id).single();
+    if (error) throw error;
 
-    const editEl = $id("rentEditId");
-    if (editEl && editEl.value) {
-      const { error } = await supabaseClient.from(RENT_TABLE).update(rentRecord).eq("id", editEl.value);
-      if (error) {
-        console.error("update rent error:", error);
-        return alert("❌ Failed to update rent: " + error.message);
+    $("buyerRecordId").value = id;
+    $("buyer_name").value = data.name || "";
+    $("buyer_phone").value = data.phone || "";
+    $("buyer_email").value = data.email || "";
+    $("buyer_location").value = data.location || "";
+    $("buyer_property").value = data.property || "";
+    $("buyer_source").value = data.source || "";
+    $("buyer_followUp").value = data.followup || "";
+    $("buyer_status").value = data.status || "";
+    $("buyer_notes").value = data.notes || "";
+
+    $("buyerModalTitle").textContent = "Edit Buyer";
+    buyerModal.show();
+  } catch (err) {
+    console.error("edit buyer error:", err);
+    toast("Failed to load buyer record", { type: "danger" });
+  }
+}
+
+/* ---------- Edit Seller (populate modal) ---------- */
+async function editSeller(id) {
+  try {
+    const { data, error } = await sb.from(SELLER_TABLE).select("*").eq("id", id).single();
+    if (error) throw error;
+
+    $("sellerRecordId").value = id;
+    $("seller_name").value = data.name || "";
+    $("seller_phone").value = data.phone || "";
+    $("seller_email").value = data.email || "";
+    $("seller_location").value = data.location || "";
+    $("seller_property").value = data.property || "";
+    $("seller_source").value = data.source || "";
+    $("seller_followUp").value = data.followup || "";
+    $("seller_status").value = data.status || "";
+    $("seller_notes").value = data.notes || "";
+
+    $("sellerModalTitle").textContent = "Edit Seller";
+    sellerModal.show();
+  } catch (err) {
+    console.error("edit seller error:", err);
+    toast("Failed to load seller record", { type: "danger" });
+  }
+}
+
+/* ---------- Delete Listing (confirm) ---------- */
+function askDelete(table, id) {
+  deleteContext = { table, id };
+  $("confirmDeleteText").textContent = "Delete this record? This action cannot be undone.";
+  confirmDeleteModal.show();
+}
+
+async function confirmDelete() {
+  if (!deleteContext) return;
+  try {
+    const { error } = await sb.from(deleteContext.table).delete().eq("id", deleteContext.id);
+    if (error) throw error;
+    toast("Record deleted", { type: "success" });
+    fetchBuyerData();
+    fetchSellerData();
+    fetchRentData();
+  } catch (err) {
+    console.error("confirm delete error:", err);
+    toast("Failed to delete", { type: "danger" });
+  } finally {
+    deleteContext = null;
+    confirmDeleteModal.hide();
+  }
+}
+
+/* ---------- Rent: fetch, add/update, edit, delete ---------- */
+async function fetchRentData(query = "") {
+  const tbody = $("rent-table-body");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">Loading…</td></tr>`;
+
+  const { data, error } = await sb.from(RENT_TABLE).select("*").order("id", { ascending: false });
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-danger">Failed to load</td></tr>`;
+    console.error("fetchRentData error:", error);
+    toast("Failed to load rent data", { type: "danger" });
+    return;
+  }
+
+  let list = Array.isArray(data) ? data : [];
+  const q = (query || "").toLowerCase().trim();
+  if (q) {
+    list = list.filter(r => ((r.tenant_name || "") + " " + (r.property_address || "") + " " + (r.status || "")).toLowerCase().includes(q));
+  }
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="text-muted">No rent records found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = "";
+  list.forEach(row => {
+    let attachHtml = "";
+    if (row.attachment_path) {
+      try {
+        const url = sb.storage.from(RENT_BUCKET).getPublicUrl(row.attachment_path).data.publicUrl;
+        attachHtml = `<a href="${url}" target="_blank" class="link-primary">View</a>`;
+      } catch (e) {
+        attachHtml = "";
       }
+    }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.tenant_name || ""}</td>
+      <td>${row.property_address || ""}</td>
+      <td>${row.monthly_rent || ""}</td>
+      <td>${row.due_date || ""}</td>
+      <td>${row.tenant_contact || ""}</td>
+      <td>${row.status || ""}</td>
+      <td>${attachHtml}</td>
+      <td>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-primary btn-edit-rent" data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-rent" data-id="${row.id}">Delete</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function saveRent(e) {
+  e.preventDefault();
+
+  const editEl = $("rentEditId");
+  const isEdit = editEl && editEl.value;
+
+  const tenantNameVal = $("tenantName").value || "";
+  const propertyAddressVal = $("propertyAddress").value || "";
+  const monthlyRentVal = $("monthlyRent").value || "";
+  const rentDueDateVal = $("rentDueDate").value || "";
+  const tenantContactVal = $("tenantContact").value || "";
+
+  let attachmentPath = null;
+  const fileInput = $("rentAttachment");
+  try {
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+      attachmentPath = await uploadAttachmentToBucket(fileInput.files[0]);
+    }
+  } catch (err) {
+    console.error("upload error:", err);
+    toast("Attachment upload failed", { type: "danger" });
+    return;
+  }
+
+  const rentRecord = {
+    tenant_name: tenantNameVal,
+    property_address: propertyAddressVal,
+    monthly_rent: monthlyRentVal,
+    due_date: rentDueDateVal,
+    tenant_contact: tenantContactVal,
+    attachment_path: attachmentPath,
+  };
+
+  try {
+    if (isEdit) {
+      const { error } = await sb.from(RENT_TABLE).update(rentRecord).eq("id", editEl.value);
+      if (error) throw error;
+      toast("Rent updated", { type: "success" });
       editEl.remove();
     } else {
-      const { error } = await supabaseClient.from(RENT_TABLE).insert([rentRecord]);
-      if (error) {
-        console.error("insert rent error:", error);
-        return alert("❌ Failed to save rent: " + error.message);
-      }
+      const { error } = await sb.from(RENT_TABLE).insert([rentRecord]);
+      if (error) throw error;
+      toast("Rent created", { type: "success" });
     }
 
-    $id("rentForm").reset();
+    $("rentForm").reset();
+    rentModal.hide();
     fetchRentData();
     showPage("rentPage");
   } catch (err) {
-    console.error("rent save exception:", err);
-    alert("❌ Failed to save rent (exception). See console.");
+    console.error("saveRent error:", err);
+    toast("Failed to save rent", { type: "danger" });
   }
-});
+}
 
-/* EDIT RENT */
 async function editRent(id) {
   try {
-    const { data, error } = await supabaseClient.from(RENT_TABLE).select("*").eq("id", id).single();
-    if (error) {
-      console.error("editRent error:", error);
-      return alert("❌ Failed to load rent record: " + (error.message || ""));
-    }
+    const { data, error } = await sb.from(RENT_TABLE).select("*").eq("id", id).single();
+    if (error) throw error;
 
-    $id("tenantName").value = data.tenant_name || "";
-    $id("propertyAddress").value = data.property_address || "";
-    $id("monthlyRent").value = data.monthly_rent || "";
-    $id("rentDueDate").value = data.due_date || "";
-    $id("tenantContact").value = data.tenant_contact || "";
+    $("tenantName").value = data.tenant_name || "";
+    $("propertyAddress").value = data.property_address || "";
+    $("monthlyRent").value = data.monthly_rent || "";
+    $("rentDueDate").value = data.due_date || "";
+    $("tenantContact").value = data.tenant_contact || "";
 
-    let hidden = $id("rentEditId");
+    let hidden = $("rentEditId");
     if (!hidden) {
       hidden = document.createElement("input");
       hidden.type = "hidden";
       hidden.id = "rentEditId";
-      $id("rentForm").appendChild(hidden);
+      $("rentForm").appendChild(hidden);
     }
     hidden.value = id;
 
-    showPage("addRentPage");
+    $("rentModalTitle").textContent = "Edit Rent";
+    rentModal.show();
   } catch (err) {
-    console.error("editRent exception:", err);
-    alert("❌ Failed to load rent (exception). See console.");
+    console.error("editRent error:", err);
+    toast("Failed to load rent", { type: "danger" });
   }
 }
-window.editRent = editRent;
 
-/* DELETE RENT */
 async function deleteRent(id) {
-  if (!confirm("Delete rent?")) return;
-  try {
-    await supabaseClient.from(RENT_TABLE).delete().eq("id", id);
-    fetchRentData();
-  } catch (err) {
-    console.error("deleteRent exception:", err);
-    alert("❌ Failed to delete rent (exception). See console.");
-  }
+  // reuse delete modal with context
+  deleteContext = { table: RENT_TABLE, id };
+  $("confirmDeleteText").textContent = "Delete this rent record?";
+  confirmDeleteModal.show();
 }
-window.deleteRent = deleteRent;
 
-/* ---------- INITIAL LOAD ---------- */
-document.addEventListener("DOMContentLoaded", () => {
-  // initial population
-  fetchData();
-  fetchData("", SELLER_TABLE);
-  fetchRentData();
-  showPage("tablePage");
+/* ---------- Event delegation for edit/delete buttons in tables ---------- */
+document.addEventListener("click", (ev) => {
+  const target = ev.target;
+
+  // buyer edit
+  if (target.matches(".btn-edit-buyer")) {
+    const id = target.dataset.id;
+    editBuyer(id);
+    return;
+  }
+
+  // seller edit
+  if (target.matches(".btn-edit-seller")) {
+    const id = target.dataset.id;
+    editSeller(id);
+    return;
+  }
+
+  // buyer delete
+  if (target.matches(".btn-delete-buyer")) {
+    const id = target.dataset.id;
+    askDelete(BUYER_TABLE, id);
+    return;
+  }
+
+  // seller delete
+  if (target.matches(".btn-delete-seller")) {
+    const id = target.dataset.id;
+    askDelete(SELLER_TABLE, id);
+    return;
+  }
+
+  // rent edit
+  if (target.matches(".btn-edit-rent")) {
+    const id = target.dataset.id;
+    editRent(id);
+    return;
+  }
+
+  // rent delete
+  if (target.matches(".btn-delete-rent")) {
+    const id = target.dataset.id;
+    deleteRent(id);
+    return;
+  }
 });
 
+/* ---------- Confirm delete button ---------- */
+$("confirmDeleteBtn").addEventListener("click", confirmDelete);
 
+/* ---------- Form submissions ---------- */
+$("buyerForm").addEventListener("submit", saveBuyer);
+$("rentForm").addEventListener("submit", saveRent);
+$("sellerForm").addEventListener("submit", saveSeller);
 
+/* ---------- Search inputs ---------- */
+$("searchBuyer").addEventListener("input", (e) => fetchBuyerData(e.target.value, BUYER_TABLE));
+$("searchSeller")?.addEventListener("input", (e) => fetchSellerData(e.target.value, SELLER_TABLE));
+$("searchRent")?.addEventListener("input", (e) => fetchRentData(e.target.value));
 
+/* ---------- Nav links (converted from data-target attributes) ---------- */
+document.querySelectorAll("[data-target]").forEach(el => {
+  el.addEventListener("click", () => {
+    const t = el.getAttribute("data-target");
+    showPage(t);
+  });
+});
 
+/* ---------- Header buttons ---------- */
+$("btnOpenAddBuyer")?.addEventListener("click", () => {
+  // clear form
+  $("buyerForm").reset();
+  $("buyerRecordId").value = "";
+  $("buyerModalTitle").textContent = "Add Buyer";
+  buyerModal.show();
+});
+
+$("btnOpenAddSeller")?.addEventListener("click", () => {
+  // clear form
+  $("sellerForm").reset();
+  $("sellerRecordId").value = "";
+  $("sellerModalTitle").textContent = "Add Seller";
+  sellerModal.show();
+});
+
+$("btnOpenAddRent")?.addEventListener("click", () => {
+  $("rentForm").reset();
+  const rentEditId = $("rentEditId");
+  if (rentEditId) rentEditId.remove();
+  $("rentModalTitle").textContent = "Add Renter";
+  rentModal.show();
+});
+
+/* Back buttons */
+$("btnBackToList")?.addEventListener("click", () => showPage("tablePage"));
+$("btnBackToRentList")?.addEventListener("click", () => showPage("rentPage"));
+
+/* ---------- showPage implementation ---------- */
+function showPage(pageId) {
+  document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
+  const el = document.getElementById(pageId);
+  if (el) {
+    el.classList.remove("d-none");
+    currentView = pageId;
+  }
+}
+
+/* ---------- initial load ---------- */
+document.addEventListener("DOMContentLoaded", async () => {
+  // initial fetch
+  await fetchBuyerData();
+  await fetchSellerData();
+  await fetchRentData();
+
+  // default page
+  showPage("buyerPage");
+  // attach listener on modal hide to reset title and validation states
+  buyerModalEl.addEventListener("hidden.bs.modal", () => {
+    $("buyerForm").classList.remove("was-validated");
+    $("buyerModalTitle").textContent = "Add Buyer";
+  });
+  buyerModalEl.addEventListener("hidden.bs.modal", () => {
+    $("sellerForm").classList.remove("was-validated");
+    $("sellerModalTitle").textContent = "Add Seller";
+  });
+  rentModalEl.addEventListener("hidden.bs.modal", () => {
+    $("rentForm").classList.remove("was-validated");
+    $("rentModalTitle").textContent = "Add Renter";
+  });
+});
+
+/* ---------- expose some functions for debugging (optional) ---------- */
+window.fetchBuyerData = fetchBuyerData;
+window.fetchSellerData = fetchSellerData;
+window.fetchRentData = fetchRentData;
+window.editBuyer = editBuyer;
+window.editSeller = editSeller;
+window.editRent = editRent;
+window.askDelete = askDelete;
