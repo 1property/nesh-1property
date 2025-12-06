@@ -1,6 +1,5 @@
 /*******************************
- * loancrm.js
- * Supabase-backed Bank Loan CRM (fixed client)
+ * loancrm.js (fixed)
  *******************************/
 
 const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
@@ -10,7 +9,7 @@ const SUPABASE_KEY =
 const LOAN_TABLE = "loan_clients";
 const LOAN_BUCKET = "loan-attachments";
 
-/* ❗ FIX: create client correctly */
+/* create supabase client */
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* --- UI elements --- */
@@ -19,7 +18,7 @@ const loanTableBody = document.getElementById("loanTableBody");
 const searchLoan = document.getElementById("searchLoan");
 const searchBtn = document.getElementById("searchBtn");
 const refreshBtn = document.getElementById("refreshBtn");
-const cancelEdit = document.getElementById("cancelEdit");
+const cancelEditBtn = document.getElementById("cancelEdit");
 const formMsg = document.getElementById("formMsg");
 
 const formCard = document.getElementById("formCard");
@@ -35,7 +34,7 @@ function safeFilename(name) {
   return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
 }
 function fmtCurrency(v) {
-  if (!v) return "";
+  if (v === null || v === undefined || v === "") return "";
   return Number(v).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -43,29 +42,34 @@ function fmtCurrency(v) {
 }
 
 /* ---------------------------
-   Show / Hide Sections
+   Show / Hide Sections (use d-none for bootstrap)
    --------------------------- */
 function showForm(editing = false) {
-  listCard.style.display = "none";
-  formCard.style.display = "block";
+  // hide list, show form using bootstrap d-none class
+  listCard.classList.add("d-none");
+  formCard.classList.remove("d-none");
 
   if (editing) {
     formTitle.textContent = "Edit Loan Client";
   } else {
     formTitle.textContent = "Add Loan Client";
     editingId = null;
-    loanForm.reset();
-    document.getElementById("loanEditId").value = "";
+    if (loanForm) loanForm.reset();
+    const hid = document.getElementById("loanEditId");
+    if (hid) hid.value = "";
     formMsg.textContent = "";
   }
 
+  // scroll to top so the form is visible
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showList() {
-  formCard.style.display = "none";
-  listCard.style.display = "block";
+  // hide form, show list
+  formCard.classList.add("d-none");
+  listCard.classList.remove("d-none");
   fetchLoanClients();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* ---------------------------
@@ -73,7 +77,7 @@ function showList() {
    --------------------------- */
 async function fetchLoanClients(query = "") {
   loanTableBody.innerHTML =
-    "<tr><td colspan='12' class='muted'>Loading…</td></tr>";
+    "<tr><td colspan='12' class='text-muted'>Loading…</td></tr>";
 
   const { data, error } = await sb
     .from(LOAN_TABLE)
@@ -82,7 +86,7 @@ async function fetchLoanClients(query = "") {
 
   if (error) {
     loanTableBody.innerHTML =
-      "<tr><td colspan='12' class='muted'>Failed to load</td></tr>";
+      "<tr><td colspan='12' class='text-muted'>Failed to load</td></tr>";
     console.error(error);
     return;
   }
@@ -103,7 +107,7 @@ async function fetchLoanClients(query = "") {
 
   if (!items.length) {
     loanTableBody.innerHTML =
-      "<tr><td colspan='12' class='muted'>No clients found</td></tr>";
+      "<tr><td colspan='12' class='text-muted'>No clients found</td></tr>";
     return;
   }
 
@@ -128,8 +132,8 @@ async function fetchLoanClients(query = "") {
         <td>${url ? `<a class="file-link" href="${url}" target="_blank">View</a>` : ""}</td>
         <td>${(row.notes || "").slice(0, 120)}</td>
         <td>
-          <button onclick="onEditLoan(${row.id})">Edit</button>
-          <button onclick="onDeleteLoan(${row.id})" class="secondary">Delete</button>
+          <button class="btn btn-sm btn-outline-primary" onclick="onEditLoan(${row.id})">Edit</button>
+          <button class="btn btn-sm btn-outline-danger ms-1" onclick="onDeleteLoan(${row.id})">Delete</button>
         </td>
       </tr>
     `;
@@ -162,16 +166,16 @@ loanForm.addEventListener("submit", async (e) => {
   formMsg.textContent = "Saving...";
 
   const payload = {
-    client_name: clientName.value.trim(),
-    phone: phone.value.trim(),
-    email: email.value.trim(),
+    client_name: clientName.value ? clientName.value.trim() : "",
+    phone: phone.value ? phone.value.trim() : "",
+    email: email.value ? email.value.trim() : "",
     income: income.value ? Number(income.value) : null,
     loan_type: loanType.value,
     loan_amount: loanAmount.value ? Number(loanAmount.value) : null,
-    bank: bank.value.trim(),
-    banker_name: bankerName.value.trim(),
+    bank: bank.value ? bank.value.trim() : "",
+    banker_name: bankerName.value ? bankerName.value.trim() : "",
     status: status.value,
-    notes: notes.value.trim(),
+    notes: notes.value ? notes.value.trim() : "",
   };
 
   let file = document.getElementById("attachment").files[0];
@@ -180,6 +184,7 @@ loanForm.addEventListener("submit", async (e) => {
       payload.attachment_path = await uploadAttachment(file);
     } catch (err) {
       alert("Upload failed: " + err.message);
+      formMsg.textContent = "";
       return;
     }
   }
@@ -191,6 +196,7 @@ loanForm.addEventListener("submit", async (e) => {
   }
 
   formMsg.textContent = "Saved!";
+  // refresh list and show it
   showList();
 });
 
@@ -246,14 +252,28 @@ refreshBtn.addEventListener("click", () => {
 });
 
 /* ---------------------------
-   Load List on start
+   Hook top buttons + cancel handler
    --------------------------- */
-document.addEventListener("DOMContentLoaded", () => showList());
+document.addEventListener("DOMContentLoaded", () => {
+  // Wire top-level buttons explicitly (don't rely on implicit globals)
+  const btnAdd = document.getElementById("btnAddClient");
+  const btnView = document.getElementById("btnViewList");
 
+  if (btnAdd) btnAdd.addEventListener("click", () => showForm(false));
+  if (btnView) btnView.addEventListener("click", () => showList());
 
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      // reset + clear editing state
+      if (loanForm) loanForm.reset();
+      editingId = null;
+      const hid = document.getElementById("loanEditId");
+      if (hid) hid.value = "";
+      formMsg.textContent = "";
+    });
+  }
 
-
-
-
-
-
+  // initial load
+  showList();
+});
