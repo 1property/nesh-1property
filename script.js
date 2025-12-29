@@ -98,3 +98,5 @@ function openWhatsApp(phone, name) {
 document.addEventListener("DOMContentLoaded", () => {
   fetchBuyerData();
 });
+
+
