@@ -1,6 +1,5 @@
 /***********************************************
- * Rebuilt script.js - ES6, Bootstrap modals/toasts
- * Preserves original Supabase behavior (CRUD + uploads)
+ * script.js – FINAL (Buyer + Seller + WhatsApp)
  ***********************************************/
 
 /* ---------- Supabase config ---------- */
@@ -10,16 +9,14 @@ const SUPABASE_KEY =
 
 const BUYER_TABLE = "callproperty";
 const SELLER_TABLE = "sellers";
-const RENT_TABLE = "rentinfo";
-const RENT_BUCKET = "rent-attachments";
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ---------- Helper ---------- */
-const $ = (id) => document.getElementById(id);
+let currentEditingId = null;
 
-/* ---------- ✅ WHATSAPP FOLLOW-UP (ADDED) ---------- */
-function sendWhatsAppFollowUp(phone, name, location, property) {
+/* ---------- WhatsApp Follow-Up ---------- */
+function sendWhatsApp(phone, name, location, property) {
   if (!phone) {
     alert("Phone number not available");
     return;
@@ -27,48 +24,56 @@ function sendWhatsAppFollowUp(phone, name, location, property) {
 
   let cleanPhone = phone.replace(/\D/g, "");
   if (cleanPhone.startsWith("0")) {
-    cleanPhone = "60" + cleanPhone.slice(1); // MY format
+    cleanPhone = "60" + cleanPhone.slice(1);
   }
 
   const message = `
 Hi ${name || ""},
+This is Theenesh from 1Property.
 
-This is Theenesh from 1Property 👋  
 Just following up regarding:
+📍 Location: ${location || ""}
+🏠 Property: ${property || ""}
 
-📍 Location: ${location || "-"}
-🏠 Property: ${property || "-"}
-
-Let me know if you're interested. Thank you 🙂
-`.trim();
+Let me know if you're interested 🙂
+  `.trim();
 
   const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
 
-/* ---------- Toast ---------- */
-function toast(message, opts = {}) {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
-  const el = document.createElement("div");
-  el.className = "toast align-items-center text-white bg-" + (opts.type || "primary") + " border-0 mb-2";
-  el.innerHTML = `<div class="toast-body">${message}</div>`;
-  container.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
-}
+/* ---------- FETCH DATA ---------- */
+async function fetchData(query = "", table = BUYER_TABLE) {
+  let { data, error } = await supabaseClient.from(table).select("*");
 
-/* ---------- Fetch Buyers ---------- */
-async function fetchBuyerData(query = "") {
-  const tbody = $("buyer-table-body");
-  if (!tbody) return;
+  if (error) {
+    alert("❌ Failed to load data: " + error.message);
+    return;
+  }
 
-  const { data, error } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
-  if (error) return;
+  if (query) {
+    data = data.filter((row) =>
+      (row.name || "").toLowerCase().includes(query.toLowerCase()) ||
+      (row.location || "").toLowerCase().includes(query.toLowerCase()) ||
+      (row.status || "").toLowerCase().includes(query.toLowerCase())
+    );
+  }
 
-  tbody.innerHTML = "";
+  const tableBody =
+    table === SELLER_TABLE
+      ? document.getElementById("seller-table-body")
+      : document.getElementById("data-table-body");
 
-  data.forEach(row => {
+  tableBody.innerHTML = "";
+
+  if (!data.length) {
+    tableBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
+    return;
+  }
+
+  data.forEach((row) => {
     const tr = document.createElement("tr");
+
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -80,66 +85,139 @@ async function fetchBuyerData(query = "") {
       <td>${row.status || ""}</td>
       <td>${row.notes || ""}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary btn-edit-buyer" data-id="${row.id}">Edit</button>
-        <button class="btn btn-sm btn-success"
-          onclick="sendWhatsAppFollowUp('${row.phone}','${row.name}','${row.location}','${row.property}')">
+        <button onclick="editProperty(${row.id}, '${table}')">Edit</button>
+        <button onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
+        <button style="background:#25D366;color:white;border:none;padding:4px 8px"
+          onclick="sendWhatsApp(
+            '${row.phone || ""}',
+            '${row.name || ""}',
+            '${row.location || ""}',
+            '${row.property || ""}'
+          )">
           WhatsApp
         </button>
       </td>
     `;
-    tbody.appendChild(tr);
+
+    tableBody.appendChild(tr);
   });
 }
 
-/* ---------- Fetch Sellers ---------- */
-async function fetchSellerData() {
-  const tbody = $("seller-table-body");
-  if (!tbody) return;
+/* ---------- ADD / UPDATE ---------- */
+document.getElementById("addForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-  const { data, error } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
-  if (error) return;
+  const listingType = document.getElementById("listingType").value;
+  const selectedTable =
+    listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
 
-  tbody.innerHTML = "";
+  const formData = {
+    name: name.value,
+    phone: phone.value,
+    email: email.value,
+    location: location.value,
+    property: property.value,
+    source: source.value,
+    followup: followUp.value,
+    status: status.value,
+    notes: notes.value,
+  };
 
-  data.forEach(row => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${row.name || ""}</td>
-      <td>${row.phone || ""}</td>
-      <td>${row.email || ""}</td>
-      <td>${row.location || ""}</td>
-      <td>${row.property || ""}</td>
-      <td>${row.source || ""}</td>
-      <td>${row.followup || ""}</td>
-      <td>${row.status || ""}</td>
-      <td>${row.notes || ""}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${row.id}">Edit</button>
-        <button class="btn btn-sm btn-success"
-          onclick="sendWhatsAppFollowUp('${row.phone}','${row.name}','${row.location}','${row.property}')">
-          WhatsApp
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+  let error;
 
-/* ---------- INIT ---------- */
-document.addEventListener("DOMContentLoaded", async () => {
-  await fetchBuyerData();
-  await fetchSellerData();
-  showPage("buyerPage");
+  if (currentEditingId) {
+    ({ error } = await supabaseClient
+      .from(selectedTable)
+      .update(formData)
+      .eq("id", currentEditingId));
+    currentEditingId = null;
+  } else {
+    ({ error } = await supabaseClient
+      .from(selectedTable)
+      .insert([formData]));
+  }
+
+  if (error) {
+    alert("❌ Error saving record: " + error.message);
+    return;
+  }
+
+  document.getElementById("addForm").reset();
+
+  if (listingType === "seller") {
+    fetchData("", SELLER_TABLE);
+    showPage("sellerPage");
+  } else {
+    fetchData("", BUYER_TABLE);
+    showPage("tablePage");
+  }
 });
+
+/* ---------- EDIT ---------- */
+async function editProperty(id, tableUsed) {
+  const { data, error } = await supabaseClient
+    .from(tableUsed)
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    alert("❌ Error loading record: " + error.message);
+    return;
+  }
+
+  name.value = data.name || "";
+  phone.value = data.phone || "";
+  email.value = data.email || "";
+  location.value = data.location || "";
+  property.value = data.property || "";
+  source.value = data.source || "";
+  followUp.value = data.followup || "";
+  status.value = data.status || "";
+  notes.value = data.notes || "";
+
+  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
+
+  currentEditingId = id;
+  showPage("formPage");
+}
+
+/* ---------- DELETE ---------- */
+async function deleteProperty(id, tableUsed) {
+  if (!confirm("Delete this record?")) return;
+
+  const { error } = await supabaseClient
+    .from(tableUsed)
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("❌ Error deleting: " + error.message);
+    return;
+  }
+
+  fetchData("", tableUsed);
+}
+
+/* ---------- SEARCH ---------- */
+function searchProperties() {
+  fetchData(searchInput.value, BUYER_TABLE);
+}
 
 /* ---------- PAGE SWITCH ---------- */
 function showPage(pageId) {
-  document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
-  const el = document.getElementById(pageId);
-  if (el) el.classList.remove("d-none");
+  document.querySelectorAll(".page").forEach((p) => {
+    p.style.display = "none";
+  });
+  document.getElementById(pageId).style.display = "block";
 }
 
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  fetchData();
+  fetchData("", SELLER_TABLE);
+  showPage("tablePage");
+});
+
 /* ---------- expose ---------- */
-window.sendWhatsAppFollowUp = sendWhatsAppFollowUp;
-window.fetchBuyerData = fetchBuyerData;
-window.fetchSellerData = fetchSellerData;
+window.sendWhatsApp = sendWhatsApp;
