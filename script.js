@@ -1,7 +1,6 @@
-// script.js
 /***********************************************
- * Rebuilt script.js - ES6, Bootstrap modals/toasts
- * Preserves original Supabase behavior (CRUD + uploads)
+ * script.js – SAFE VERSION
+ * Adds FOLLOW-UP COLOR INTELLIGENCE ONLY
  ***********************************************/
 
 /* ---------- Supabase config ---------- */
@@ -10,9 +9,6 @@ const SUPABASE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
 
 const BUYER_TABLE = "callproperty";
-const SELLER_TABLE = "sellers";
-const RENT_TABLE = "rentinfo";
-const RENT_BUCKET = "rent-attachments";
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -20,18 +16,33 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = (id) => document.getElementById(id);
 
 /* ---------- Toast ---------- */
-function toast(message, opts = {}) {
+function toast(message, type = "primary") {
   const container = document.getElementById("toastContainer");
   const el = document.createElement("div");
-  el.className = "toast align-items-center text-white bg-" + (opts.type || "primary");
+  el.className = `toast text-white bg-${type} mb-2`;
   el.innerHTML = `<div class="toast-body">${message}</div>`;
   container.appendChild(el);
   new bootstrap.Toast(el).show();
   setTimeout(() => el.remove(), 4000);
 }
 
+/* ---------- FOLLOW-UP COLOR LOGIC ---------- */
+function getFollowUpColor(followupDate) {
+  if (!followupDate) return "";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const fDate = new Date(followupDate);
+  fDate.setHours(0, 0, 0, 0);
+
+  if (fDate < today) return "table-danger";   // 🔴 overdue
+  if (fDate.getTime() === today.getTime()) return "table-warning"; // 🟡 today
+  return "table-success"; // 🟢 future
+}
+
 /* ---------- Fetch Buyers ---------- */
-async function fetchBuyerData(query = "") {
+async function fetchBuyerData() {
   const tbody = $("buyer-table-body");
   if (!tbody) return;
 
@@ -40,12 +51,20 @@ async function fetchBuyerData(query = "") {
     .select("*")
     .order("id", { ascending: false });
 
-  if (error) return;
+  if (error) {
+    toast("Failed to load buyers", "danger");
+    console.error(error);
+    return;
+  }
 
   tbody.innerHTML = "";
 
   data.forEach(row => {
     const tr = document.createElement("tr");
+
+    // ✅ FOLLOW-UP COLOR APPLIED HERE
+    tr.className = getFollowUpColor(row.followup);
+
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -58,31 +77,24 @@ async function fetchBuyerData(query = "") {
       <td>${row.notes || ""}</td>
       <td>
         <div class="d-flex gap-2">
-          <!-- ✅ WHATSAPP BUTTON -->
           <button class="btn btn-sm btn-success"
             onclick="openWhatsApp('${row.phone}','${row.name}')">
             WhatsApp
           </button>
-
-          <button class="btn btn-sm btn-outline-primary btn-edit-buyer" data-id="${row.id}">
+          <button class="btn btn-sm btn-outline-primary btn-edit-buyer"
+            data-id="${row.id}">
             Edit
           </button>
-
-          <button class="btn btn-sm btn-outline-danger btn-delete-buyer" data-id="${row.id}">
+          <button class="btn btn-sm btn-outline-danger btn-delete-buyer"
+            data-id="${row.id}">
             Delete
           </button>
         </div>
       </td>
     `;
+
     tbody.appendChild(tr);
   });
-}
-
-/* ---------- Delete ---------- */
-async function deleteBuyer(id) {
-  if (!confirm("Delete this record?")) return;
-  await sb.from(BUYER_TABLE).delete().eq("id", id);
-  fetchBuyerData();
 }
 
 /* ---------- WhatsApp Follow-Up ---------- */
