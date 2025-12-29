@@ -30,42 +30,17 @@ function toast(message, opts = {}) {
   setTimeout(() => el.remove(), 4000);
 }
 
-/* =========================================================
-   ✅ FOLLOW-UP INTELLIGENCE (ADDED ONLY)
-   ========================================================= */
-function getFollowUpClass(followupDate) {
-  if (!followupDate) return "";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const f = new Date(followupDate);
-  f.setHours(0, 0, 0, 0);
-
-  if (f < today) return "followup-overdue"; // 🔴
-  if (f.getTime() === today.getTime()) return "followup-today"; // 🟡
-  return "followup-future"; // 🟢
-}
-
 /* ---------- Fetch Buyers ---------- */
 async function fetchBuyerData(query = "") {
   const tbody = $("buyer-table-body");
   if (!tbody) return;
 
-  const { data, error } = await sb
-    .from(BUYER_TABLE)
-    .select("*")
-    .order("id", { ascending: false });
-
+  const { data, error } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
   if (error) return;
 
   tbody.innerHTML = "";
   data.forEach(row => {
     const tr = document.createElement("tr");
-
-    // ✅ APPLY FOLLOW-UP COLOR (ADDED ONLY)
-    tr.className = getFollowUpClass(row.followup);
-
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -78,7 +53,7 @@ async function fetchBuyerData(query = "") {
       <td>${row.notes || ""}</td>
       <td>
         <div class="d-flex gap-2">
-          <!-- ✅ WHATSAPP BUTTON (UNCHANGED) -->
+          <!-- ✅ WHATSAPP BUTTON (ADDED ONLY) -->
           <button class="btn btn-sm btn-success"
             onclick="openWhatsApp('${row.phone}','${row.name}')">
             WhatsApp
@@ -100,7 +75,7 @@ async function deleteBuyer(id) {
   fetchBuyerData();
 }
 
-/* ---------- WhatsApp Follow-Up (UNCHANGED) ---------- */
+/* ---------- WhatsApp Follow-Up (ONLY ADDITION) ---------- */
 function openWhatsApp(phone, name) {
   if (!phone) {
     alert("No phone number");
@@ -123,3 +98,46 @@ function openWhatsApp(phone, name) {
 document.addEventListener("DOMContentLoaded", () => {
   fetchBuyerData();
 });
+
+/* =====================================================
+   FOLLOW-UP INTELLIGENCE (AUTO ROW COLOR)
+   ===================================================== */
+
+function applyFollowUpColors(tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  [...tbody.rows].forEach(row => {
+    const followUpCell = row.cells[6]; // Follow-Up column
+    if (!followUpCell || !followUpCell.textContent) return;
+
+    const followDate = new Date(followUpCell.textContent);
+    followDate.setHours(0, 0, 0, 0);
+
+    row.classList.remove("follow-overdue", "follow-today", "follow-future");
+
+    if (followDate < today) {
+      row.classList.add("follow-overdue"); // 🔴 overdue
+    } else if (followDate.getTime() === today.getTime()) {
+      row.classList.add("follow-today"); // 🟡 today
+    } else {
+      row.classList.add("follow-future"); // 🟢 future
+    }
+  });
+}
+
+/* AUTO-APPLY AFTER DATA LOAD */
+const originalFetchBuyerData = fetchBuyerData;
+fetchBuyerData = async function (...args) {
+  await originalFetchBuyerData.apply(this, args);
+  applyFollowUpColors("buyer-table-body");
+};
+
+const originalFetchSellerData = fetchSellerData;
+fetchSellerData = async function (...args) {
+  await originalFetchSellerData.apply(this, args);
+  applyFollowUpColors("seller-table-body");
+};
