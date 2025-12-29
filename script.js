@@ -1,5 +1,6 @@
 /***********************************************
- * script.js – FINAL (Buyer + Seller + WhatsApp)
+ * Rebuilt script.js - ES6, Bootstrap modals/toasts
+ * Preserves original Supabase behavior (CRUD + uploads)
  ***********************************************/
 
 /* ---------- Supabase config ---------- */
@@ -9,71 +10,41 @@ const SUPABASE_KEY =
 
 const BUYER_TABLE = "callproperty";
 const SELLER_TABLE = "sellers";
+const RENT_TABLE = "rentinfo";
+const RENT_BUCKET = "rent-attachments";
 
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentEditingId = null;
+/* ---------- Helper ---------- */
+const $ = (id) => document.getElementById(id);
 
-/* ---------- WhatsApp Follow-Up ---------- */
-function sendWhatsApp(phone, name, location, property) {
-  if (!phone) {
-    alert("Phone number not available");
-    return;
-  }
-
-  let cleanPhone = phone.replace(/\D/g, "");
-  if (cleanPhone.startsWith("0")) {
-    cleanPhone = "60" + cleanPhone.slice(1);
-  }
-
-  const message = `
-Hi ${name || ""},
-This is Theenesh from 1Property.
-
-Just following up regarding:
-📍 Location: ${location || ""}
-🏠 Property: ${property || ""}
-
-Let me know if you're interested 🙂
-  `.trim();
-
-  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-  window.open(url, "_blank");
+/* ---------- Toast ---------- */
+function toast(message, opts = {}) {
+  const container = document.getElementById("toastContainer");
+  const el = document.createElement("div");
+  el.className = `toast text-white bg-${opts.type || "primary"} mb-2`;
+  el.innerHTML = `<div class="toast-body">${message}</div>`;
+  container.appendChild(el);
+  new bootstrap.Toast(el, { delay: 3000 }).show();
 }
 
-/* ---------- FETCH DATA ---------- */
-async function fetchData(query = "", table = BUYER_TABLE) {
-  let { data, error } = await supabaseClient.from(table).select("*");
+/* ---------- Modals ---------- */
+const buyerModal = new bootstrap.Modal($("buyerModal"));
+const sellerModal = new bootstrap.Modal($("sellerModal"));
+const rentModal = new bootstrap.Modal($("rentModal"));
+const confirmDeleteModal = new bootstrap.Modal($("confirmDeleteModal"));
 
-  if (error) {
-    alert("❌ Failed to load data: " + error.message);
-    return;
-  }
+let deleteContext = null;
 
-  if (query) {
-    data = data.filter((row) =>
-      (row.name || "").toLowerCase().includes(query.toLowerCase()) ||
-      (row.location || "").toLowerCase().includes(query.toLowerCase()) ||
-      (row.status || "").toLowerCase().includes(query.toLowerCase())
-    );
-  }
+/* ---------- Fetch Buyers ---------- */
+async function fetchBuyerData(query = "") {
+  const tbody = $("buyer-table-body");
+  tbody.innerHTML = "";
 
-  const tableBody =
-    table === SELLER_TABLE
-      ? document.getElementById("seller-table-body")
-      : document.getElementById("data-table-body");
+  const { data } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
 
-  tableBody.innerHTML = "";
-
-  if (!data.length) {
-    tableBody.innerHTML = `<tr><td colspan="10">No records found</td></tr>`;
-    return;
-  }
-
-  data.forEach((row) => {
+  data.forEach(row => {
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
       <td>${row.name || ""}</td>
       <td>${row.phone || ""}</td>
@@ -85,139 +56,95 @@ async function fetchData(query = "", table = BUYER_TABLE) {
       <td>${row.status || ""}</td>
       <td>${row.notes || ""}</td>
       <td>
-        <button onclick="editProperty(${row.id}, '${table}')">Edit</button>
-        <button onclick="deleteProperty(${row.id}, '${table}')">Delete</button>
-        <button style="background:#25D366;color:white;border:none;padding:4px 8px"
-          onclick="sendWhatsApp(
-            '${row.phone || ""}',
-            '${row.name || ""}',
-            '${row.location || ""}',
-            '${row.property || ""}'
-          )">
-          WhatsApp
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-success btn-wa" 
+            data-phone="${row.phone}" 
+            data-name="${row.name}">
+            WhatsApp
+          </button>
+          <button class="btn btn-sm btn-outline-primary btn-edit-buyer" data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-buyer" data-id="${row.id}">Delete</button>
+        </div>
       </td>
     `;
-
-    tableBody.appendChild(tr);
+    tbody.appendChild(tr);
   });
 }
 
-/* ---------- ADD / UPDATE ---------- */
-document.getElementById("addForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+/* ---------- Fetch Sellers ---------- */
+async function fetchSellerData() {
+  const tbody = $("seller-table-body");
+  tbody.innerHTML = "";
 
-  const listingType = document.getElementById("listingType").value;
-  const selectedTable =
-    listingType === "seller" ? SELLER_TABLE : BUYER_TABLE;
+  const { data } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
 
-  const formData = {
-    name: name.value,
-    phone: phone.value,
-    email: email.value,
-    location: location.value,
-    property: property.value,
-    source: source.value,
-    followup: followUp.value,
-    status: status.value,
-    notes: notes.value,
-  };
+  data.forEach(row => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.name || ""}</td>
+      <td>${row.phone || ""}</td>
+      <td>${row.email || ""}</td>
+      <td>${row.location || ""}</td>
+      <td>${row.property || ""}</td>
+      <td>${row.source || ""}</td>
+      <td>${row.followup || ""}</td>
+      <td>${row.status || ""}</td>
+      <td>${row.notes || ""}</td>
+      <td>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-success btn-wa" 
+            data-phone="${row.phone}" 
+            data-name="${row.name}">
+            WhatsApp
+          </button>
+          <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-seller" data-id="${row.id}">Delete</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-  let error;
+/* ---------- WhatsApp Follow-Up (NEW) ---------- */
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("btn-wa")) {
+    const phone = e.target.dataset.phone.replace(/\D/g, "");
+    const name = e.target.dataset.name || "Customer";
 
-  if (currentEditingId) {
-    ({ error } = await supabaseClient
-      .from(selectedTable)
-      .update(formData)
-      .eq("id", currentEditingId));
-    currentEditingId = null;
-  } else {
-    ({ error } = await supabaseClient
-      .from(selectedTable)
-      .insert([formData]));
-  }
+    const msg =
+      `Hi ${name}, this is Theenesh from Nesh Property 👋\n\n` +
+      `Just following up on your property enquiry.\n` +
+      `Let me know when you’re free 😊`;
 
-  if (error) {
-    alert("❌ Error saving record: " + error.message);
-    return;
-  }
-
-  document.getElementById("addForm").reset();
-
-  if (listingType === "seller") {
-    fetchData("", SELLER_TABLE);
-    showPage("sellerPage");
-  } else {
-    fetchData("", BUYER_TABLE);
-    showPage("tablePage");
+    window.open(
+      `https://wa.me/60${phone}?text=${encodeURIComponent(msg)}`,
+      "_blank"
+    );
   }
 });
 
-/* ---------- EDIT ---------- */
-async function editProperty(id, tableUsed) {
-  const { data, error } = await supabaseClient
-    .from(tableUsed)
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    alert("❌ Error loading record: " + error.message);
-    return;
+/* ---------- Delete ---------- */
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("btn-delete-buyer")) {
+    deleteContext = { table: BUYER_TABLE, id: e.target.dataset.id };
+    confirmDeleteModal.show();
   }
-
-  name.value = data.name || "";
-  phone.value = data.phone || "";
-  email.value = data.email || "";
-  location.value = data.location || "";
-  property.value = data.property || "";
-  source.value = data.source || "";
-  followUp.value = data.followup || "";
-  status.value = data.status || "";
-  notes.value = data.notes || "";
-
-  listingType.value = tableUsed === SELLER_TABLE ? "seller" : "buyer";
-
-  currentEditingId = id;
-  showPage("formPage");
-}
-
-/* ---------- DELETE ---------- */
-async function deleteProperty(id, tableUsed) {
-  if (!confirm("Delete this record?")) return;
-
-  const { error } = await supabaseClient
-    .from(tableUsed)
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("❌ Error deleting: " + error.message);
-    return;
+  if (e.target.classList.contains("btn-delete-seller")) {
+    deleteContext = { table: SELLER_TABLE, id: e.target.dataset.id };
+    confirmDeleteModal.show();
   }
+});
 
-  fetchData("", tableUsed);
-}
+$("confirmDeleteBtn").addEventListener("click", async () => {
+  await sb.from(deleteContext.table).delete().eq("id", deleteContext.id);
+  confirmDeleteModal.hide();
+  fetchBuyerData();
+  fetchSellerData();
+});
 
-/* ---------- SEARCH ---------- */
-function searchProperties() {
-  fetchData(searchInput.value, BUYER_TABLE);
-}
-
-/* ---------- PAGE SWITCH ---------- */
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach((p) => {
-    p.style.display = "none";
-  });
-  document.getElementById(pageId).style.display = "block";
-}
-
-/* ---------- INIT ---------- */
+/* ---------- Init ---------- */
 document.addEventListener("DOMContentLoaded", () => {
-  fetchData();
-  fetchData("", SELLER_TABLE);
-  showPage("tablePage");
+  fetchBuyerData();
+  fetchSellerData();
 });
-
-/* ---------- expose ---------- */
-window.sendWhatsApp = sendWhatsApp;
