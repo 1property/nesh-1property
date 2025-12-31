@@ -48,13 +48,13 @@ function getFollowUpRowClass(followup) {
   const fDate = new Date(followup);
   fDate.setHours(0, 0, 0, 0);
 
-  if (fDate < today) return "table-danger";   // 🔴 overdue
+  if (fDate < today) return "table-danger";      // 🔴 overdue
   if (fDate.getTime() === today.getTime()) return "table-warning"; // 🟡 today
-  return "table-success"; // 🟢 future
+  return "table-success";                       // 🟢 future
 }
 
 /* ---------- Fetch Buyers ---------- */
-async function fetchBuyerData(query = "") {
+async function fetchBuyerData() {
   const tbody = $("buyer-table-body");
   tbody.innerHTML = "";
 
@@ -65,9 +65,7 @@ async function fetchBuyerData(query = "") {
 
   data.forEach(row => {
     const tr = document.createElement("tr");
-
-    /* ✅ FOLLOW-UP COLOR APPLIED (ONLY 1 LINE ADDED) */
-    tr.className = getFollowUpRowClass(row.followup);
+    tr.className = getFollowUpRowClass(row.followup); // ✅ color logic
 
     tr.innerHTML = `
       <td>${row.name || ""}</td>
@@ -109,9 +107,7 @@ async function fetchSellerData() {
 
   data.forEach(row => {
     const tr = document.createElement("tr");
-
-    /* ✅ FOLLOW-UP COLOR APPLIED (SAFE) */
-    tr.className = getFollowUpRowClass(row.followup);
+    tr.className = getFollowUpRowClass(row.followup); // ✅ color logic
 
     tr.innerHTML = `
       <td>${row.name || ""}</td>
@@ -183,3 +179,4 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchBuyerData();
   fetchSellerData();
 });
+
