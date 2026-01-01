@@ -21,13 +21,11 @@ const $ = (id) => document.getElementById(id);
 /* ---------- Toast ---------- */
 function toast(message, opts = {}) {
   const container = document.getElementById("toastContainer");
-  const id = "t" + Date.now();
   const el = document.createElement("div");
-  el.className = "toast align-items-center text-white bg-" + (opts.type || "primary") + " border-0 mb-2";
+  el.className = `toast text-white bg-${opts.type || "primary"} mb-2`;
   el.innerHTML = `<div class="toast-body">${message}</div>`;
   container.appendChild(el);
-  new bootstrap.Toast(el, { delay: 4000 }).show();
-  setTimeout(() => el.remove(), 4500);
+  new bootstrap.Toast(el, { delay: 3000 }).show();
 }
 
 /* ---------- Modals ---------- */
@@ -50,20 +48,25 @@ function getFollowUpRowClass(followup) {
   const fDate = new Date(followup);
   fDate.setHours(0, 0, 0, 0);
 
-  if (fDate < today) return "table-danger";   // overdue
-  if (fDate.getTime() === today.getTime()) return "table-warning"; // today
-  return "table-success"; // future
+  if (fDate < today) return "table-danger";   // 🔴 overdue
+  if (fDate.getTime() === today.getTime()) return "table-warning"; // 🟡 today
+  return "table-success"; // 🟢 future
 }
 
 /* ---------- Fetch Buyers ---------- */
-async function fetchBuyerData() {
+async function fetchBuyerData(query = "") {
   const tbody = $("buyer-table-body");
   tbody.innerHTML = "";
 
-  const { data } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
+  const { data } = await sb
+    .from(BUYER_TABLE)
+    .select("*")
+    .order("id", { ascending: false });
 
   data.forEach(row => {
     const tr = document.createElement("tr");
+
+    /* ✅ FOLLOW-UP COLOR APPLIED (ONLY 1 LINE ADDED) */
     tr.className = getFollowUpRowClass(row.followup);
 
     tr.innerHTML = `
@@ -83,8 +86,10 @@ async function fetchBuyerData() {
             data-name="${row.name}">
             WhatsApp
           </button>
-          <button class="btn btn-sm btn-outline-primary btn-edit-buyer" data-id="${row.id}">Edit</button>
-          <button class="btn btn-sm btn-outline-danger btn-delete-buyer" data-id="${row.id}">Delete</button>
+          <button class="btn btn-sm btn-outline-primary btn-edit-buyer"
+            data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-buyer"
+            data-id="${row.id}">Delete</button>
         </div>
       </td>
     `;
@@ -97,10 +102,15 @@ async function fetchSellerData() {
   const tbody = $("seller-table-body");
   tbody.innerHTML = "";
 
-  const { data } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
+  const { data } = await sb
+    .from(SELLER_TABLE)
+    .select("*")
+    .order("id", { ascending: false });
 
   data.forEach(row => {
     const tr = document.createElement("tr");
+
+    /* ✅ FOLLOW-UP COLOR APPLIED (SAFE) */
     tr.className = getFollowUpRowClass(row.followup);
 
     tr.innerHTML = `
@@ -120,8 +130,10 @@ async function fetchSellerData() {
             data-name="${row.name}">
             WhatsApp
           </button>
-          <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${row.id}">Edit</button>
-          <button class="btn btn-sm btn-outline-danger btn-delete-seller" data-id="${row.id}">Delete</button>
+          <button class="btn btn-sm btn-outline-primary btn-edit-seller"
+            data-id="${row.id}">Edit</button>
+          <button class="btn btn-sm btn-outline-danger btn-delete-seller"
+            data-id="${row.id}">Delete</button>
         </div>
       </td>
     `;
@@ -129,23 +141,21 @@ async function fetchSellerData() {
   });
 }
 
-/* ---------- WhatsApp Follow-Up (SAFE) ---------- */
+/* ---------- WhatsApp Follow-Up ---------- */
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("btn-wa")) {
-    const phone = (e.target.dataset.phone || "").replace(/\D/g, "");
+    const phone = e.target.dataset.phone.replace(/\D/g, "");
     const name = e.target.dataset.name || "Customer";
-
-    if (!phone) {
-      alert("No phone number");
-      return;
-    }
 
     const msg =
       `Hi ${name}, this is Theenesh from Nesh Property 👋\n\n` +
       `Just following up on your property enquiry.\n` +
       `Let me know when you’re free 😊`;
 
-    window.open(`https://wa.me/60${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+    window.open(
+      `https://wa.me/60${phone}?text=${encodeURIComponent(msg)}`,
+      "_blank"
+    );
   }
 });
 
@@ -173,4 +183,3 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchBuyerData();
   fetchSellerData();
 });
-
