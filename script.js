@@ -1,6 +1,6 @@
 /***********************************************
- * FINAL script.js – SEARCH FIXED + FULLY WORKING
- * Buyer / Seller / Rent / Edit / Delete / WhatsApp
+ * FINAL WORKING script.js
+ * Buyer / Seller / Rent / Search / Edit / Delete / WhatsApp
  ***********************************************/
 
 /* ---------- Supabase config ---------- */
@@ -17,25 +17,36 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 /* ---------- Helpers ---------- */
 const $ = (id) => document.getElementById(id);
 
-/* ---------- Cache (CRITICAL FOR SEARCH) ---------- */
-let buyerCache = [];
-let sellerCache = [];
-let rentCache = [];
-
 /* ---------- Toast ---------- */
-function toast(msg, type = "primary") {
+function toast(msg, type = "success") {
   const box = $("toastContainer");
   const el = document.createElement("div");
   el.className = `toast text-white bg-${type} mb-2`;
   el.innerHTML = `<div class="toast-body">${msg}</div>`;
   box.appendChild(el);
-  new bootstrap.Toast(el, { delay: 2500 }).show();
-  setTimeout(() => el.remove(), 3000);
+  new bootstrap.Toast(el, { delay: 3000 }).show();
+  setTimeout(() => el.remove(), 3500);
 }
 
-/* =====================================================
-   PAGE SWITCHING
-===================================================== */
+/* ---------- Modals ---------- */
+const buyerModal = new bootstrap.Modal($("buyerModal"));
+const sellerModal = new bootstrap.Modal($("sellerModal"));
+const rentModal = new bootstrap.Modal($("rentModal"));
+const confirmDeleteModal = new bootstrap.Modal($("confirmDeleteModal"));
+
+let deleteContext = null;
+
+/* ---------- Follow-up coloring ---------- */
+function followupClass(dateStr) {
+  if (!dateStr) return "";
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  if (d < today) return "table-danger";
+  if (d.getTime() === today.getTime()) return "table-warning";
+  return "table-success";
+}
+
+/* ---------- Page switching ---------- */
 function showPage(id) {
   document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
   $(id).classList.remove("d-none");
@@ -49,27 +60,29 @@ document.querySelectorAll("[data-target]").forEach(el => {
    BUYERS
 ===================================================== */
 async function fetchBuyerData() {
-  const { data } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
-  buyerCache = data || [];
-  renderBuyerTable(buyerCache);
-}
-
-function renderBuyerTable(data) {
   const tbody = $("buyer-table-body");
   tbody.innerHTML = "";
 
-  data.forEach(r => {
+  const search = $("searchBuyer").value.toLowerCase();
+  const { data } = await sb.from(BUYER_TABLE).select("*").order("id",{ascending:false});
+
+  data.filter(r =>
+    r.name?.toLowerCase().includes(search) ||
+    r.phone?.includes(search) ||
+    r.location?.toLowerCase().includes(search)
+  ).forEach(r => {
     const tr = document.createElement("tr");
+    tr.className = followupClass(r.followup);
     tr.innerHTML = `
-      <td>${r.name || ""}</td>
-      <td>${r.phone || ""}</td>
-      <td>${r.email || ""}</td>
-      <td>${r.location || ""}</td>
-      <td>${r.property || ""}</td>
-      <td>${r.source || ""}</td>
-      <td>${r.followup || ""}</td>
-      <td>${r.status || ""}</td>
-      <td>${r.notes || ""}</td>
+      <td>${r.name||""}</td>
+      <td>${r.phone||""}</td>
+      <td>${r.email||""}</td>
+      <td>${r.location||""}</td>
+      <td>${r.property||""}</td>
+      <td>${r.source||""}</td>
+      <td>${r.followup||""}</td>
+      <td>${r.status||""}</td>
+      <td>${r.notes||""}</td>
       <td>
         <div class="d-flex gap-2">
           <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WhatsApp</button>
@@ -81,122 +94,191 @@ function renderBuyerTable(data) {
   });
 }
 
+/* ---------- Add / Edit Buyer ---------- */
+$("btnOpenAddBuyer").addEventListener("click", () => {
+  $("buyerForm").reset();
+  $("buyerRecordId").value = "";
+  buyerModal.show();
+});
+
+$("buyerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("buyerRecordId").value;
+
+  const payload = {
+    name: $("buyer_name").value,
+    phone: $("buyer_phone").value,
+    email: $("buyer_email").value,
+    location: $("buyer_location").value,
+    property: $("buyer_property").value,
+    source: $("buyer_source").value,
+    followup: $("buyer_followUp").value || null,
+    status: $("buyer_status").value,
+    notes: $("buyer_notes").value
+  };
+
+  id
+    ? await sb.from(BUYER_TABLE).update(payload).eq("id", id)
+    : await sb.from(BUYER_TABLE).insert([payload]);
+
+  buyerModal.hide();
+  fetchBuyerData();
+  toast("Buyer saved");
+});
+
 /* =====================================================
    SELLERS
 ===================================================== */
 async function fetchSellerData() {
-  const { data } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
-  sellerCache = data || [];
-  renderSellerTable(sellerCache);
-}
-
-function renderSellerTable(data) {
   const tbody = $("seller-table-body");
   tbody.innerHTML = "";
 
-  data.forEach(r => {
+  const search = $("searchSeller").value.toLowerCase();
+  const { data } = await sb.from(SELLER_TABLE).select("*").order("id",{ascending:false});
+
+  data.filter(r =>
+    r.name?.toLowerCase().includes(search) ||
+    r.phone?.includes(search)
+  ).forEach(r => {
     const tr = document.createElement("tr");
+    tr.className = followupClass(r.followup);
     tr.innerHTML = `
-      <td>${r.name || ""}</td>
-      <td>${r.phone || ""}</td>
-      <td>${r.email || ""}</td>
-      <td>${r.location || ""}</td>
-      <td>${r.property || ""}</td>
-      <td>${r.source || ""}</td>
-      <td>${r.followup || ""}</td>
-      <td>${r.status || ""}</td>
-      <td>${r.notes || ""}</td>
+      <td>${r.name||""}</td>
+      <td>${r.phone||""}</td>
+      <td>${r.email||""}</td>
+      <td>${r.location||""}</td>
+      <td>${r.property||""}</td>
+      <td>${r.source||""}</td>
+      <td>${r.followup||""}</td>
+      <td>${r.status||""}</td>
+      <td>${r.notes||""}</td>
       <td>
-        <div class="d-flex gap-2">
-          <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WhatsApp</button>
-          <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${r.id}">Edit</button>
-          <button class="btn btn-sm btn-outline-danger btn-delete-seller" data-id="${r.id}">Delete</button>
-        </div>
+        <button class="btn btn-sm btn-outline-primary btn-edit-seller" data-id="${r.id}">Edit</button>
+        <button class="btn btn-sm btn-outline-danger btn-delete-seller" data-id="${r.id}">Delete</button>
       </td>`;
     tbody.appendChild(tr);
   });
 }
 
+$("btnOpenAddSeller").addEventListener("click", () => {
+  $("sellerForm").reset();
+  $("sellerRecordId").value = "";
+  sellerModal.show();
+});
+
+$("sellerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("sellerRecordId").value;
+
+  const payload = {
+    name: $("seller_name").value,
+    phone: $("seller_phone").value,
+    email: $("seller_email").value,
+    location: $("seller_location").value,
+    property: $("seller_property").value,
+    source: $("seller_source").value,
+    followup: $("seller_followUp").value || null,
+    status: $("seller_status").value,
+    notes: $("seller_notes").value
+  };
+
+  id
+    ? await sb.from(SELLER_TABLE).update(payload).eq("id", id)
+    : await sb.from(SELLER_TABLE).insert([payload]);
+
+  sellerModal.hide();
+  fetchSellerData();
+  toast("Seller saved");
+});
+
 /* =====================================================
    RENT
 ===================================================== */
 async function fetchRentData() {
-  const { data } = await sb.from(RENT_TABLE).select("*").order("id", { ascending: false });
-  rentCache = data || [];
-  renderRentTable(rentCache);
-}
-
-function renderRentTable(data) {
   const tbody = $("rent-table-body");
   tbody.innerHTML = "";
 
-  data.forEach(r => {
+  const search = $("searchRent").value.toLowerCase();
+  const { data } = await sb.from(RENT_TABLE).select("*").order("id",{ascending:false});
+
+  data.filter(r =>
+    r.tenant_name?.toLowerCase().includes(search) ||
+    r.property_address?.toLowerCase().includes(search)
+  ).forEach(r => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${r.tenant_name || ""}</td>
-      <td>${r.property_address || ""}</td>
-      <td>${r.monthly_rent || ""}</td>
-      <td>${r.due_date || ""}</td>
-      <td>${r.tenant_contact || ""}</td>
-      <td>${r.status || ""}</td>
+      <td>${r.tenant_name||""}</td>
+      <td>${r.property_address||""}</td>
+      <td>${r.monthly_rent||""}</td>
+      <td>${r.due_date||""}</td>
+      <td>${r.tenant_contact||""}</td>
+      <td>${r.status||""}</td>
       <td>
-        <button class="btn btn-sm btn-outline-primary btn-edit-rent" data-id="${r.id}">Edit</button>
         <button class="btn btn-sm btn-outline-danger btn-delete-rent" data-id="${r.id}">Delete</button>
       </td>`;
     tbody.appendChild(tr);
   });
 }
 
+$("btnOpenAddRent").addEventListener("click", () => {
+  $("rentForm").reset();
+  $("rentEditId").value = "";
+  rentModal.show();
+});
+
+$("rentForm").addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const payload = {
+    tenant_name: $("tenantName").value,
+    property_address: $("propertyAddress").value,
+    monthly_rent: $("monthlyRent").value,
+    due_date: $("rentDueDate").value,
+    tenant_contact: $("tenantContact").value,
+    status: "Active"
+  };
+
+  await sb.from(RENT_TABLE).insert([payload]);
+  rentModal.hide();
+  fetchRentData();
+  toast("Rent saved");
+});
+
 /* =====================================================
    GLOBAL CLICK HANDLER
 ===================================================== */
 document.addEventListener("click", e => {
   if (e.target.classList.contains("btn-wa")) {
-    const phone = e.target.dataset.phone?.replace(/\D/g, "");
-    const name = e.target.dataset.name || "Customer";
-    window.open(`https://wa.me/60${phone}?text=${encodeURIComponent(`Hi ${name}, this is Theenesh from Nesh Property 👋`)}`);
+    const p = e.target.dataset.phone.replace(/\D/g,"");
+    const n = e.target.dataset.name || "Customer";
+    window.open(`https://wa.me/60${p}?text=${encodeURIComponent(`Hi ${n}, this is Theenesh from Nesh Property 👋`)}`);
   }
+
+  if (e.target.classList.contains("btn-delete-buyer"))
+    deleteContext = { table: BUYER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+
+  if (e.target.classList.contains("btn-delete-seller"))
+    deleteContext = { table: SELLER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+
+  if (e.target.classList.contains("btn-delete-rent"))
+    deleteContext = { table: RENT_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
 });
 
-/* =====================================================
-   INIT + SEARCH (FIXED)
-===================================================== */
-document.addEventListener("DOMContentLoaded", () => {
+$("confirmDeleteBtn").addEventListener("click", async () => {
+  await sb.from(deleteContext.table).delete().eq("id", deleteContext.id);
+  confirmDeleteModal.hide();
+  fetchBuyerData(); fetchSellerData(); fetchRentData();
+});
 
+/* ---------- Search listeners ---------- */
+$("searchBuyer").addEventListener("input", fetchBuyerData);
+$("searchSeller").addEventListener("input", fetchSellerData);
+$("searchRent").addEventListener("input", fetchRentData);
+
+/* ---------- INIT ---------- */
+document.addEventListener("DOMContentLoaded", () => {
   fetchBuyerData();
   fetchSellerData();
   fetchRentData();
   showPage("buyerPage");
-
-  // ✅ BUYER SEARCH
-  $("searchBuyer").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase();
-    renderBuyerTable(
-      buyerCache.filter(b =>
-        Object.values(b).join(" ").toLowerCase().includes(q)
-      )
-    );
-  });
-
-  // ✅ SELLER SEARCH
-  $("searchSeller").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase();
-    renderSellerTable(
-      sellerCache.filter(s =>
-        Object.values(s).join(" ").toLowerCase().includes(q)
-      )
-    );
-  });
-
-  // ✅ RENT SEARCH
-  $("searchRent").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase();
-    renderRentTable(
-      rentCache.filter(r =>
-        Object.values(r).join(" ").toLowerCase().includes(q)
-      )
-    );
-  });
-
 });
-
