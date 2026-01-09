@@ -252,3 +252,4 @@ document.addEventListener("DOMContentLoaded",()=>{
   fetchRentData();
   showPage("buyerPage");
 });
+
