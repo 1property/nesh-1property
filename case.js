@@ -1,47 +1,43 @@
 
-const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
+cconst SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
 const SUPABASE_KEY =  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* =====================================
-   GET CASE ID FROM URL
-===================================== */
+// get token from URL
 const params = new URLSearchParams(window.location.search);
-const caseId = params.get("id");
+const token = params.get("token");
 
-if (!caseId) {
-  alert("Case ID missing in URL");
+if (!token) {
+  alert("Invalid link");
 }
 
-/* =====================================
-   LOAD CASE DETAILS
-===================================== */
+// load case using token
 async function loadCase() {
   const { data, error } = await sb
     .from("cases")
     .select("*")
-    .eq("id", caseId)
+    .eq("client_token", token)
     .single();
 
   if (error || !data) {
-    console.error(error);
-    alert("Failed to load case");
+    alert("Case not found");
     return;
   }
 
-  document.getElementById("caseTitle").innerText = data.case_code || "-";
+  window.caseId = data.id;
+
+  document.getElementById("caseTitle").innerText = data.case_code;
   document.getElementById("property").innerText = data.property_address || "-";
-  document.getElementById("statusProperty").innerText = data.status_property || "-";
-  document.getElementById("statusLoan").innerText = data.status_loan || "-";
-  document.getElementById("statusLegal").innerText = data.status_legal || "-";
+  document.getElementById("statusProperty").innerText = data.status_property;
+  document.getElementById("statusLoan").innerText = data.status_loan;
+  document.getElementById("statusLegal").innerText = data.status_legal;
+
+  loadTimeline(data.id);
 }
 
-/* =====================================
-   LOAD STATUS TIMELINE
-===================================== */
-async function loadTimeline() {
-  const { data, error } = await sb
+// load timeline
+async function loadTimeline(caseId) {
+  const { data } = await sb
     .from("case_status_logs")
     .select("*")
     .eq("case_id", caseId)
@@ -49,12 +45,6 @@ async function loadTimeline() {
 
   const ul = document.getElementById("timeline");
   ul.innerHTML = "";
-
-  if (error) {
-    console.error(error);
-    ul.innerHTML = `<li class="list-group-item text-danger">Failed to load timeline</li>`;
-    return;
-  }
 
   if (!data || data.length === 0) {
     ul.innerHTML = `<li class="list-group-item text-muted">No updates yet</li>`;
@@ -64,8 +54,8 @@ async function loadTimeline() {
   data.forEach(log => {
     ul.innerHTML += `
       <li class="list-group-item">
-        <strong>${log.track}</strong><br>
-        ${log.old_status || "-"} → <b>${log.new_status}</b>
+        <b>${log.track}</b><br>
+        ${log.old_status || "-"} → <strong>${log.new_status}</strong>
         <div class="small text-muted">
           ${new Date(log.created_at).toLocaleString()}
         </div>
@@ -74,11 +64,4 @@ async function loadTimeline() {
   });
 }
 
-/* =====================================
-   INIT
-===================================== */
-document.addEventListener("DOMContentLoaded", () => {
-  loadCase();
-  loadTimeline();
-});
-</script>
+loadCase();
