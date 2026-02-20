@@ -1,112 +1,98 @@
-<!-- crm.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Real Estate CRM</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Real Estate CRM</title>
 
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-  <style>
-    body { font-family: 'Poppins', sans-serif; background: #f6f7fb; }
-    header h1 { text-align: center; margin: 18px 0 6px; font-weight: 600; }
-    .table-wrapper { background: #fff; padding: 14px; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.04);}
-    .cursor-pointer { cursor: pointer; }
-    @media (max-width: 768px) {.table-responsive { font-size: 0.95rem; }}
-  </style>
+<style>
+body{font-family:Poppins;background:#f6f7fb;}
+.table-wrapper{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.04);}
+.page{display:none;}
+</style>
 </head>
 
 <body>
 
-<!-- PASSWORD PROTECTION (UNCHANGED) -->
+<!-- PASSWORD -->
 <script>
-(function () {
-const allowedPassword = "12345";
-if (!sessionStorage.getItem("crm_access")) {
-let attempts = 3;
-while (attempts > 0) {
-let input = prompt(`Enter password (Attempts left: ${attempts})`);
-if (input === null) { window.location.href="index.html"; return; }
-if (input === allowedPassword) { sessionStorage.setItem("crm_access","true"); break; }
-attempts--; alert("Wrong password!");
-}
-if (attempts===0) window.location.href="index.html";
+(function(){
+if(!sessionStorage.getItem("crm_access")){
+let p=prompt("Enter CRM password:");
+if(p!=="12345"){ alert("Wrong password"); location.href="index.html"; }
+sessionStorage.setItem("crm_access","true");
 }
 })();
 </script>
 
-<header>
-<h1>Real Estate CRM System</h1>
-<div class="text-center text-muted mb-2">Manage Buyers, Sellers and Renters — powered by Supabase</div>
-
-<!-- QUICK ACCESS BUTTONS (NEW SAFE ADD) -->
-<div class="text-center mt-2">
-<a href="appointment.html" class="btn btn-outline-warning btn-sm m-1">📅 Appointments</a>
-</div>
+<header class="text-center mt-3">
+<h2>Real Estate CRM System</h2>
 </header>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+<!-- NAVBAR -->
+<nav class="navbar navbar-light bg-white shadow-sm mb-4">
 <div class="container">
-<a class="navbar-brand fw-semibold" href="#">🏡 Real Estate CRM</a>
+<ul class="navbar-nav flex-row gap-3">
 
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="navMenu">
-<ul class="navbar-nav ms-auto gap-2">
-
-<a class="nav-link cursor-pointer" href="index.html">Home</a>
-<li class="nav-item"><a class="nav-link cursor-pointer" data-target="buyerPage">Buyer List</a></li>
-<li class="nav-item"><a class="nav-link cursor-pointer" data-target="sellerPage">Seller List</a></li>
-<li class="nav-item"><a class="nav-link cursor-pointer" data-target="rentPage">Renter List</a></li>
-<a class="nav-link cursor-pointer" href="loancrm.html">Loan CRM</a>
-
-<!-- NEW FINANCIAL BUTTON -->
-<li class="nav-item">
-<a class="nav-link cursor-pointer" data-target="financialPage">Financial Tools</a>
-</li>
+<li><a class="nav-link" href="index.html">Home</a></li>
+<li><a class="nav-link" onclick="showPage('buyerPage')">Buyer</a></li>
+<li><a class="nav-link" onclick="showPage('sellerPage')">Seller</a></li>
+<li><a class="nav-link" onclick="showPage('rentPage')">Rent</a></li>
+<li><a class="nav-link" href="loancrm.html">Loan CRM</a></li>
+<li><a class="nav-link" href="appointment.html">Appointments</a></li>
+<li><a class="nav-link" onclick="showPage('financialPage')">Financial</a></li>
 
 </ul>
 </div>
-</div>
 </nav>
 
-<main class="container mb-5">
+<div class="container">
 
-<!-- BUYER PAGE -->
+<!-- BUYER -->
 <section id="buyerPage" class="page">
 <h4>Buyer List</h4>
+<div class="table-wrapper">
+<table class="table">
+<thead><tr><th>Name</th><th>Phone</th></tr></thead>
+<tbody id="buyer-table-body"></tbody>
+</table>
+</div>
 </section>
 
-<!-- SELLER PAGE -->
-<section id="sellerPage" class="page d-none">
+<!-- SELLER -->
+<section id="sellerPage" class="page">
 <h4>Seller List</h4>
+<div class="table-wrapper">
+<table class="table">
+<thead><tr><th>Name</th><th>Phone</th></tr></thead>
+<tbody id="seller-table-body"></tbody>
+</table>
+</div>
 </section>
 
-<!-- RENT PAGE -->
-<section id="rentPage" class="page d-none">
-<h4>Renter List</h4>
+<!-- RENT -->
+<section id="rentPage" class="page">
+<h4>Rent List</h4>
+<div class="table-wrapper">
+<table class="table">
+<thead><tr><th>Tenant</th><th>Rent</th></tr></thead>
+<tbody id="rent-table-body"></tbody>
+</table>
+</div>
 </section>
 
-<!-- ============================= -->
-<!-- NEW FINANCIAL TOOLS PAGE -->
-<!-- ============================= -->
+<!-- FINANCIAL -->
+<section id="financialPage" class="page">
 
-<section id="financialPage" class="page d-none">
+<h4>Financial Tools</h4>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h4 class="m-0">Financial Tools</h4>
-<div>
+<div class="mb-3">
 <button class="btn btn-outline-primary btn-sm" onclick="showFinance('dsrBox')">DSR</button>
 <button class="btn btn-outline-success btn-sm" onclick="showFinance('costBox')">Cost</button>
-</div>
 </div>
 
 <!-- DSR -->
@@ -122,9 +108,7 @@ if (attempts===0) window.location.href="index.html";
 <button class="btn btn-primary w-100" onclick="calcDSR()">Calculate</button>
 </div>
 </div>
-<div class="mt-3">
-<b>DSR Result:</b> <span id="dsr_result">-</span>
-</div>
+<p class="mt-2"><b>DSR:</b> <span id="dsr_result">-</span></p>
 </div>
 
 <!-- COST -->
@@ -134,66 +118,59 @@ if (attempts===0) window.location.href="index.html";
 <input id="cost_price" class="form-control" placeholder="Property Price">
 </div>
 <div class="col-md-6">
-<input id="cost_margin" class="form-control" value="90" placeholder="Loan Margin %">
+<input id="cost_margin" class="form-control" value="90" placeholder="Loan Margin">
 </div>
 <div class="col-md-12">
 <button class="btn btn-success w-100" onclick="calcCost()">Calculate</button>
 </div>
 </div>
-<div class="mt-3" id="cost_output"></div>
+<div class="mt-2" id="cost_output"></div>
 </div>
 
 </section>
 
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="script.js" defer></script>
-
-<!-- ============================= -->
-<!-- NEW SCRIPT (SAFE ADD ONLY) -->
-<!-- ============================= -->
+</div>
 
 <script>
 
-/* PAGE SWITCH */
-document.querySelectorAll("[data-target]").forEach(btn=>{
-btn.addEventListener("click",()=>{
-document.querySelectorAll(".page").forEach(p=>p.classList.add("d-none"));
-document.getElementById(btn.dataset.target).classList.remove("d-none");
-});
-});
+function showPage(id){
+document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+document.getElementById(id).style.display='block';
+}
 
-/* FINANCIAL SWITCH */
 function showFinance(id){
 document.getElementById("dsrBox").style.display="none";
 document.getElementById("costBox").style.display="none";
 document.getElementById(id).style.display="block";
 }
 
-/* DSR CALCULATOR */
 function calcDSR(){
 let income=parseFloat(dsr_income.value)||0;
 let debt=parseFloat(dsr_debt.value)||0;
-if(income<=0){ dsr_result.innerText="Enter income"; return; }
+if(income===0){alert("Enter income");return;}
 let dsr=(debt/income)*100;
 dsr_result.innerText=dsr.toFixed(2)+"%";
 }
 
-/* COST CALCULATOR */
 function calcCost(){
 let price=parseFloat(cost_price.value)||0;
-let margin=parseFloat(cost_margin.value)||0;
-if(price<=0){ cost_output.innerHTML="Enter property price"; return; }
-let loan=(price*margin)/100;
+let margin=parseFloat(cost_margin.value)||90;
+if(price===0){alert("Enter price");return;}
+let loan=price*(margin/100);
 let down=price-loan;
+let legal=price*0.01;
+let total=down+legal;
 cost_output.innerHTML=`
-Loan Amount: RM ${loan.toLocaleString()}<br>
-Downpayment: RM ${down.toLocaleString()}
-`;
+Loan: RM ${loan.toLocaleString()}<br>
+Downpayment: RM ${down.toLocaleString()}<br>
+Legal: RM ${legal.toLocaleString()}<br>
+<b>Total Cash: RM ${total.toLocaleString()}</b>`;
 }
+
+document.addEventListener("DOMContentLoaded",()=>showPage('buyerPage'));
 
 </script>
 
+<script src="script.js"></script>
 </body>
 </html>
