@@ -1,419 +1,273 @@
-<!-- crm.html -->
-<!DOCTYPE html>
-<html lang="en">
+/***********************************************
+ * FINAL script.js – STABLE & COMPLETE
+ * Buyer / Seller / Rent / Search / Add / Edit / Delete
+ ***********************************************/
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Real Estate CRM</title>
+/* ---------- Supabase config ---------- */
+const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
 
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+const BUYER_TABLE = "callproperty";
+const SELLER_TABLE = "sellers";
+const RENT_TABLE = "rentinfo";
 
-  <!-- Supabase (needed by script.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+/* ---------- Helpers ---------- */
+const $ = (id) => document.getElementById(id);
 
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #f6f7fb;
-    }
+/* ---------- Bootstrap Modals ---------- */
+const buyerModal = new bootstrap.Modal($("buyerModal"));
+const sellerModal = new bootstrap.Modal($("sellerModal"));
+const rentModal = new bootstrap.Modal($("rentModal"));
+const confirmDeleteModal = new bootstrap.Modal($("confirmDeleteModal"));
 
-    header h1 {
-      text-align: center;
-      margin: 18px 0 6px;
-      font-weight: 600;
-    }
+let deleteContext = null;
 
-    .table-wrapper {
-      background: #fff;
-      padding: 14px;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
-    }
+/* =====================================================
+   PAGE SWITCHING
+===================================================== */
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
+  $(id).classList.remove("d-none");
+}
 
-    .card-ghost {
-      background: transparent;
-      box-shadow: none;
-    }
+document.querySelectorAll("[data-target]").forEach(el => {
+  el.addEventListener("click", () => showPage(el.dataset.target));
+});
 
-    .cursor-pointer {
-      cursor: pointer;
-    }
+/* =====================================================
+   ADD BUTTONS – FIXED
+===================================================== */
+$("btnOpenAddBuyer").addEventListener("click", () => {
+  $("buyerForm").reset();
+  $("buyerRecordId").value = "";
+  $("buyerModalTitle").innerText = "Add Buyer";
+  buyerModal.show();
+});
 
-    /* smaller table on narrow screens */
-    @media (max-width: 768px) {
-      .table-responsive {
-        font-size: 0.95rem;
-      }
-    }
-  </style>
-</head>
+$("btnOpenAddSeller").addEventListener("click", () => {
+  $("sellerForm").reset();
+  $("sellerRecordId").value = "";
+  $("sellerModalTitle").innerText = "Add Seller";
+  sellerModal.show();
+});
 
-<body>
+$("btnOpenAddRent").addEventListener("click", () => {
+  $("rentForm").reset();
+  $("rentEditId").value = "";
+  $("rentModalTitle").innerText = "Add Renter";
+  rentModal.show();
+});
 
-  <!-- CRM Password Protection -->
-  <script>
-    (function () {
-      const allowedPassword = "12345";
+/* =====================================================
+   BUYERS
+===================================================== */
+async function fetchBuyerData(filter = "") {
+  const tbody = $("buyer-table-body");
+  tbody.innerHTML = "";
 
-      // Check if user has access
-      if (!sessionStorage.getItem("crm_access")) {
-        let attempts = 3; // limit attempts to 3
-        let input = null;
+  const { data } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
 
-        while (attempts > 0) {
-          input = prompt(`Enter password to access CRM (Attempts left: ${attempts}):`);
+  data
+    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
+    .forEach(r => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.name || ""}</td>
+          <td>${r.phone || ""}</td>
+          <td>${r.email || ""}</td>
+          <td>${r.location || ""}</td>
+          <td>${r.property || ""}</td>
+          <td>${r.source || ""}</td>
+          <td>${r.followup || ""}</td>
+          <td>${r.status || ""}</td>
+          <td>${r.notes || ""}</td>
+          <td>
+            <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WA</button>
+            <button class="btn btn-sm btn-primary btn-edit-buyer" data-id="${r.id}">Edit</button>
+            <button class="btn btn-sm btn-danger btn-delete-buyer" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>`;
+    });
+}
 
-          // User clicked cancel
-          if (input === null) {
-            alert("Access canceled. Redirecting to Home.");
-            window.location.href = "index.html";
-            return;
-          }
+$("buyerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("buyerRecordId").value;
 
-          if (input === allowedPassword) {
-            sessionStorage.setItem("crm_access", "true");
-            break; // exit loop
-          } else {
-            attempts--;
-            alert("❌ Wrong password!");
-          }
-        }
+  const payload = {
+    name: $("buyer_name").value,
+    phone: $("buyer_phone").value,
+    email: $("buyer_email").value,
+    location: $("buyer_location").value,
+    property: $("buyer_property").value,
+    source: $("buyer_source").value,
+    followup: $("buyer_followUp").value || null,
+    status: $("buyer_status").value,
+    notes: $("buyer_notes").value
+  };
 
-        if (attempts === 0) {
-          alert("❌ Too many failed attempts! Redirecting to Home.");
-          window.location.href = "index.html";
-        }
-      }
-    })();
-  </script>
+  id
+    ? await sb.from(BUYER_TABLE).update(payload).eq("id", id)
+    : await sb.from(BUYER_TABLE).insert([payload]);
 
-  <header>
-    <h1>Real Estate CRM System</h1>
-    <div class="text-center text-muted mb-2">Manage Buyers, Sellers and Renters — powered by Supabase</div>
-  </header>
+  buyerModal.hide();
+  fetchBuyerData();
+});
 
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-    <div class="container">
-      <a class="navbar-brand fw-semibold" href="#">🏡 Real Estate CRM</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+/* =====================================================
+   SELLERS
+===================================================== */
+async function fetchSellerData(filter = "") {
+  const tbody = $("seller-table-body");
+  tbody.innerHTML = "";
 
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto gap-2">
-          <a class="nav-link cursor-pointer" href="index.html">Home</a>
-          <li class="nav-item"><a class="nav-link cursor-pointer" data-target="buyerPage">Buyer List</a></li>
-          <li class="nav-item"><a class="nav-link cursor-pointer" data-target="sellerPage">Seller List</a></li>
-          <li class="nav-item"><a class="nav-link cursor-pointer" data-target="rentPage">Renter List</a></li>
-          <a class="nav-link cursor-pointer" href="loancrm.html">Loan CRM</a>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  const { data } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
 
-  <main class="container mb-5">
+  data
+    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
+    .forEach(r => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.name || ""}</td>
+          <td>${r.phone || ""}</td>
+          <td>${r.email || ""}</td>
+          <td>${r.location || ""}</td>
+          <td>${r.property || ""}</td>
+          <td>${r.source || ""}</td>
+          <td>${r.followup || ""}</td>
+          <td>${r.status || ""}</td>
+          <td>${r.notes || ""}</td>
+          <td>
+            <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WA</button>
+            <button class="btn btn-sm btn-primary btn-edit-seller" data-id="${r.id}">Edit</button>
+            <button class="btn btn-sm btn-danger btn-delete-seller" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>`;
+    });
+}
 
-    <!-- LIST: BUYERS -->
-    <section id="buyerPage" class="page">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="m-0">Buyer List</h4>
-        <div class="d-flex gap-2">
-          <input class="form-control form-control-sm" id="searchBuyer" placeholder="Search...">
-          <button class="btn btn-primary btn-sm" id="btnOpenAddBuyer">Add Buyer</button>
-        </div>
-      </div>
+$("sellerForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("sellerRecordId").value;
 
-      <div class="table-wrapper table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Property</th>
-              <th>Source</th>
-              <th>Follow-Up</th>
-              <th>Status</th>
-              <th>Notes</th>
-              <th style="min-width:140px">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="buyer-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  const payload = {
+    name: $("seller_name").value,
+    phone: $("seller_phone").value,
+    email: $("seller_email").value,
+    location: $("seller_location").value,
+    property: $("seller_property").value,
+    source: $("seller_source").value,
+    followup: $("seller_followUp").value || null,
+    status: $("seller_status").value,
+    notes: $("seller_notes").value
+  };
 
-    <!-- LIST: SELLERS -->
-    <section id="sellerPage" class="page d-none">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="m-0">Seller List</h4>
-        <div class="d-flex gap-2">
-          <input class="form-control form-control-sm" id="searchSeller" placeholder="Search...">
-          <button class="btn btn-primary btn-sm" id="btnOpenAddSeller">Add Seller</button>
-        </div>
-      </div>
+  id
+    ? await sb.from(SELLER_TABLE).update(payload).eq("id", id)
+    : await sb.from(SELLER_TABLE).insert([payload]);
 
-      <div class="table-wrapper table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Property</th>
-              <th>Source</th>
-              <th>Follow-Up</th>
-              <th>Status</th>
-              <th>Notes</th>
-              <th style="min-width:140px">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="seller-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  sellerModal.hide();
+  fetchSellerData();
+});
 
-    <!-- LIST: RENT -->
-    <section id="rentPage" class="page d-none">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="m-0">Renter List</h4>
-        <div class="d-flex gap-2">
-          <input class="form-control form-control-sm" id="searchRent" placeholder="Search...">
-          <button class="btn btn-primary btn-sm" id="btnOpenAddRent">Add Renter</button>
-        </div>
-      </div>
+/* =====================================================
+   RENT – FIXED ACTIONS COLUMN
+===================================================== */
+async function fetchRentData(filter = "") {
+  const tbody = $("rent-table-body");
+  tbody.innerHTML = "";
 
-      <div class="table-wrapper table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Tenant Name</th>
-              <th>Property</th>
-              <th>Rent (RM)</th>
-              <th>Due Date</th>
-              <th>Contact</th>
-              <th>Status</th>
-              <th>Attachment</th>
-              <th style="min-width:140px">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="rent-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  const { data } = await sb.from(RENT_TABLE).select("*").order("id", { ascending: false });
 
-  </main>
+  data
+    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
+    .forEach(r => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${r.tenant_name || ""}</td>
+          <td>${r.property_address || ""}</td>
+          <td>${r.monthly_rent || ""}</td>
+          <td>${r.due_date || ""}</td>
+          <td>${r.tenant_contact || ""}</td>
+          <td>${r.status || ""}</td>
+          <td>${r.attachment_url ? `<a href="${r.attachment_url}" target="_blank">View</a>` : "-"}</td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-edit-rent" data-id="${r.id}">Edit</button>
+            <button class="btn btn-sm btn-danger btn-delete-rent" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>`;
+    });
+}
 
-  <!-- MODAL: Add/Edit Buyer -->
-  <div class="modal fade" id="buyerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form id="buyerForm" class="needs-validation" novalidate>
-          <div class="modal-header">
-            <h5 class="modal-title" id="buyerModalTitle">Add Listing</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="buyerRecordId" />
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Listing Type</label>
-                <select class="form-select" required disabled="true">
-                  <option value="buyer">Buyer</option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Name</label>
-                <input id="buyer_name" type="text" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Phone</label>
-                <input id="buyer_phone" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Email</label>
-                <input id="buyer_email" type="email" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Location</label>
-                <input id="buyer_location" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Property</label>
-                <input id="buyer_property" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Source</label>
-                <input id="buyer_source" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Follow-Up</label>
-                <input id="buyer_followUp" type="date" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Status</label>
-                <input id="buyer_status" type="text" class="form-control">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Notes</label>
-                <textarea id="buyer_notes" class="form-control" rows="3"></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button id="saveBuyerBtn" type="submit" class="btn btn-primary">Save Buyer</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+$("rentForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = $("rentEditId").value;
 
-  <!-- MODAL: Add/Edit Seller -->
-  <div class="modal fade" id="sellerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form id="sellerForm" class="needs-validation" novalidate>
-          <div class="modal-header">
-            <h5 class="modal-title" id="sellerModalTitle">Add Seller</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="sellerRecordId" />
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Listing Type</label>
-                <select class="form-select" required disabled="true">
-                  <option value="buyer">Seller</option>
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Name</label>
-                <input id="seller_name" type="text" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Phone</label>
-                <input id="seller_phone" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Email</label>
-                <input id="seller_email" type="email" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Location</label>
-                <input id="seller_location" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Property</label>
-                <input id="seller_property" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Source</label>
-                <input id="seller_source" type="text" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Follow-Up</label>
-                <input id="seller_followUp" type="date" class="form-control">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Status</label>
-                <input id="seller_status" type="text" class="form-control">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Notes</label>
-                <textarea id="seller_notes" class="form-control" rows="3"></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button id="saveSellerBtn" type="submit" class="btn btn-primary">Save Seller</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  const payload = {
+    tenant_name: $("tenantName").value,
+    property_address: $("propertyAddress").value,
+    monthly_rent: $("monthlyRent").value,
+    due_date: $("rentDueDate").value,
+    tenant_contact: $("tenantContact").value,
+    status: "Active"
+  };
 
-  <!-- MODAL: Add/Edit Rent -->
-  <div class="modal fade" id="rentModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <form id="rentForm" class="needs-validation" novalidate>
-          <div class="modal-header">
-            <h5 class="modal-title" id="rentModalTitle">Add Renter</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" id="rentEditId">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Tenant Name</label>
-                <input id="tenantName" type="text" class="form-control" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Property Address</label>
-                <input id="propertyAddress" type="text" class="form-control" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Monthly Rent (RM)</label>
-                <input id="monthlyRent" type="number" class="form-control" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Due Date</label>
-                <input id="rentDueDate" type="date" class="form-control" required>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Tenant Contact</label>
-                <input id="tenantContact" type="text" class="form-control">
-              </div>
-              <div class="col-12">
-                <label class="form-label">Attachment</label>
-                <input id="rentAttachment" type="file" class="form-control" accept="image/*,application/pdf">
-                <div class="form-text">Optional. Max 20MB</div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
-            <button id="saveRentBtn" type="submit" class="btn btn-primary">Save Rent</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  id
+    ? await sb.from(RENT_TABLE).update(payload).eq("id", id)
+    : await sb.from(RENT_TABLE).insert([payload]);
 
-  <!-- MODAL: Confirm Delete -->
-  <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body text-center p-4">
-          <p id="confirmDeleteText" class="mb-3">Delete item?</p>
-          <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  rentModal.hide();
+  fetchRentData();
+});
 
-  <!-- Toasts (top-right) -->
-  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
-    <div id="toastContainer"></div>
-  </div>
+/* =====================================================
+   GLOBAL ACTIONS
+===================================================== */
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("btn-wa")) {
+    const p = e.target.dataset.phone?.replace(/\D/g, "");
+    const n = e.target.dataset.name || "Client";
+    window.open(`https://wa.me/60${p}?text=${encodeURIComponent(`Hi ${n}, this is Theenesh from Nesh Property 👋`)}`);
+  }
 
-  <!-- Bootstrap + App script -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="script.js" defer></script>
-</body>
+  if (e.target.classList.contains("btn-delete-buyer"))
+    deleteContext = { table: BUYER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
 
-</html>
+  if (e.target.classList.contains("btn-delete-seller"))
+    deleteContext = { table: SELLER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+
+  if (e.target.classList.contains("btn-delete-rent"))
+    deleteContext = { table: RENT_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+});
+
+$("confirmDeleteBtn").addEventListener("click", async () => {
+  await sb.from(deleteContext.table).delete().eq("id", deleteContext.id);
+  confirmDeleteModal.hide();
+  fetchBuyerData(); fetchSellerData(); fetchRentData();
+});
+
+/* =====================================================
+   SEARCH
+===================================================== */
+$("searchBuyer").addEventListener("input", e => fetchBuyerData(e.target.value.toLowerCase()));
+$("searchSeller").addEventListener("input", e => fetchSellerData(e.target.value.toLowerCase()));
+$("searchRent").addEventListener("input", e => fetchRentData(e.target.value.toLowerCase()));
+
+/* =====================================================
+   INIT
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  showPage("buyerPage");
+  fetchBuyerData();
+  fetchSellerData();
+  fetchRentData();
+});
+
+
+
 
 
 
