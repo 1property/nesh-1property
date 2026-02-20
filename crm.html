@@ -7,10 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Real Estate CRM</title>
 
-  <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Supabase (needed by script.js) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -34,157 +31,135 @@
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
     }
 
-    .card-ghost {
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .cursor-pointer {
-      cursor: pointer;
-    }
+    .cursor-pointer { cursor: pointer; }
 
     @media (max-width: 768px) {
-      .table-responsive {
-        font-size: 0.95rem;
-      }
+      .table-responsive { font-size: 0.95rem; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- CRM Password Protection -->
-  <script>
-    (function () {
-      const allowedPassword = "12345";
-
-      if (!sessionStorage.getItem("crm_access")) {
-        let attempts = 3;
-        let input = null;
-
-        while (attempts > 0) {
-          input = prompt(`Enter password to access CRM (Attempts left: ${attempts}):`);
-
-          if (input === null) {
-            alert("Access canceled. Redirecting to Home.");
-            window.location.href = "index.html";
-            return;
-          }
-
-          if (input === allowedPassword) {
-            sessionStorage.setItem("crm_access", "true");
-            break;
-          } else {
-            attempts--;
-            alert("❌ Wrong password!");
-          }
-        }
-
-        if (attempts === 0) {
-          alert("❌ Too many failed attempts! Redirecting to Home.");
-          window.location.href = "index.html";
-        }
+<script>
+(function () {
+  const allowedPassword = "12345";
+  if (!sessionStorage.getItem("crm_access")) {
+    let attempts = 3;
+    while (attempts > 0) {
+      let input = prompt(`Enter password to access CRM (Attempts left: ${attempts}):`);
+      if (input === null) { window.location.href = "index.html"; return; }
+      if (input === allowedPassword) {
+        sessionStorage.setItem("crm_access", "true");
+        break;
+      } else {
+        attempts--;
+        alert("❌ Wrong password!");
       }
-    })();
-  </script>
+    }
+    if (attempts === 0) window.location.href = "index.html";
+  }
+})();
+</script>
 
-  <header>
-    <h1>Real Estate CRM System</h1>
-    <div class="text-center text-muted mb-2">Manage Buyers, Sellers and Renters — powered by Supabase</div>
-  </header>
+<header>
+  <h1>Real Estate CRM System</h1>
+  <div class="text-center text-muted mb-2">
+    Manage Buyers, Sellers and Renters — powered by Supabase
+  </div>
+</header>
 
-  <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-    <div class="container">
-      <a class="navbar-brand fw-semibold" href="#">🏡 Real Estate CRM</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" href="#">🏡 Real Estate CRM</a>
 
-      <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav ms-auto gap-2">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-          <a class="nav-link cursor-pointer" href="index.html">Home</a>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto gap-2">
 
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" data-target="buyerPage">Buyer List</a>
-          </li>
+        <a class="nav-link cursor-pointer" href="index.html">Home</a>
 
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" data-target="sellerPage">Seller List</a>
-          </li>
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" data-target="buyerPage">Buyer List</a>
+        </li>
 
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" data-target="rentPage">Renter List</a>
-          </li>
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" data-target="sellerPage">Seller List</a>
+        </li>
 
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" data-target="rentPage">Renter List</a>
+        </li>
+
+        <li class="nav-item">
           <a class="nav-link cursor-pointer" href="loancrm.html">Loan CRM</a>
+        </li>
 
-          <!-- ONLY ADDED LINKS BELOW -->
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" href="dsr.html">DSR</a>
-          </li>
+        <!-- NEW LINKS -->
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" href="dsr.html">DSR</a>
+        </li>
 
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" href="calculator.html">Calculator</a>
-          </li>
+        <li class="nav-item">
+          <!-- FIXED HERE -->
+          <a class="nav-link cursor-pointer" href="cal.html">Calculator</a>
+        </li>
 
-          <li class="nav-item">
-            <a class="nav-link cursor-pointer" href="appointment.html">Appointments</a>
-          </li>
+        <li class="nav-item">
+          <a class="nav-link cursor-pointer" href="appointment.html">Appointments</a>
+        </li>
 
-        </ul>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container mb-5">
+
+  <!-- BUYER -->
+  <section id="buyerPage" class="page">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h4 class="m-0">Buyer List</h4>
+      <div class="d-flex gap-2">
+        <input class="form-control form-control-sm" id="searchBuyer" placeholder="Search...">
+        <button class="btn btn-primary btn-sm" id="btnOpenAddBuyer">Add Buyer</button>
       </div>
     </div>
-  </nav>
 
-  <main class="container mb-5">
+    <div class="table-wrapper table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Property</th>
+            <th>Source</th>
+            <th>Follow-Up</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th style="min-width:140px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="buyer-table-body"></tbody>
+      </table>
+    </div>
+  </section>
 
-    <!-- BUYERS -->
-    <section id="buyerPage" class="page">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="m-0">Buyer List</h4>
-        <div class="d-flex gap-2">
-          <input class="form-control form-control-sm" id="searchBuyer" placeholder="Search...">
-          <button class="btn btn-primary btn-sm" id="btnOpenAddBuyer">Add Buyer</button>
-        </div>
-      </div>
+  <!-- SELLER -->
+  <section id="sellerPage" class="page d-none"></section>
 
-      <div class="table-wrapper table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Email</th>
-              <th>Location</th>
-              <th>Property</th>
-              <th>Source</th>
-              <th>Follow-Up</th>
-              <th>Status</th>
-              <th>Notes</th>
-              <th style="min-width:140px">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="buyer-table-body"></tbody>
-        </table>
-      </div>
-    </section>
+  <!-- RENT -->
+  <section id="rentPage" class="page d-none"></section>
 
-    <!-- SELLERS -->
-    <section id="sellerPage" class="page d-none">
-      <!-- unchanged -->
-    </section>
+</main>
 
-    <!-- RENT -->
-    <section id="rentPage" class="page d-none">
-      <!-- unchanged -->
-    </section>
-
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="script.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="script.js" defer></script>
 
 </body>
 </html>
