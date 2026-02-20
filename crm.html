@@ -1,168 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Real Estate CRM</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
-<style>
-body { font-family: 'Poppins', sans-serif; background: #f6f7fb; }
-header h1 { text-align:center; margin:18px 0 6px; font-weight:600; }
-.table-wrapper { background:#fff; padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
-.cursor-pointer { cursor:pointer; }
-.page { display:none; }
-.page.active { display:block; }
-</style>
-</head>
-
-<body>
-
-<header>
-<h1>Real Estate CRM System</h1>
-<div class="text-center text-muted mb-2">Manage Buyers, Sellers, Renters & Financial Tools</div>
-</header>
-
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
-<div class="container">
-<a class="navbar-brand fw-semibold" href="#">🏡 Real Estate CRM</a>
-
-<div class="collapse navbar-collapse">
-<ul class="navbar-nav ms-auto gap-2">
-<li class="nav-item"><a class="nav-link cursor-pointer" onclick="showPage('buyerPage')">Buyer</a></li>
-<li class="nav-item"><a class="nav-link cursor-pointer" onclick="showPage('sellerPage')">Seller</a></li>
-<li class="nav-item"><a class="nav-link cursor-pointer" onclick="showPage('rentPage')">Rent</a></li>
-<li class="nav-item"><a class="nav-link cursor-pointer text-primary fw-bold" onclick="showPage('financialPage')">Financial</a></li>
-</ul>
-</div>
-</div>
-</nav>
-
-<main class="container mb-5">
-
-<!-- BUYER -->
-<section id="buyerPage" class="page active">
-<h4>Buyer List</h4>
-<p>Your existing buyer table remains here.</p>
-</section>
-
-<!-- SELLER -->
-<section id="sellerPage" class="page">
-<h4>Seller List</h4>
-<p>Your existing seller table remains here.</p>
-</section>
-
-<!-- RENT -->
-<section id="rentPage" class="page">
-<h4>Renter List</h4>
-<p>Your existing rent table remains here.</p>
-</section>
-
 <!-- FINANCIAL TOOLS -->
-<section id="financialPage" class="page">
+<section id="financialPage" class="page d-none">
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-<h4>Financial Tools</h4>
-<div>
-<button class="btn btn-outline-primary btn-sm" onclick="showFinance('dsrBox')">DSR</button>
-<button class="btn btn-outline-success btn-sm" onclick="showFinance('costBox')">Cost</button>
-</div>
-</div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="m-0">Financial Tools</h4>
+    <div>
+      <button class="btn btn-outline-primary btn-sm" onclick="showFinance('dsrBox')">DSR</button>
+      <button class="btn btn-outline-success btn-sm" onclick="showFinance('costBox')">Cost</button>
+    </div>
+  </div>
 
-<!-- DSR -->
-<div id="dsrBox">
-<h5>DSR Calculator</h5>
-<div class="row g-2">
-<div class="col-md-4">
-<input id="dsr_income" class="form-control" placeholder="Net Income">
-</div>
-<div class="col-md-4">
-<input id="dsr_debt" class="form-control" placeholder="Total Debt">
-</div>
-<div class="col-md-4">
-<button class="btn btn-primary w-100" onclick="calcDSR()">Calculate</button>
-</div>
-</div>
-<div class="mt-3">
-<b>DSR Result:</b> <span id="dsr_result">-</span>
-</div>
-</div>
+  <!-- DSR -->
+  <div id="dsrBox">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input id="dsr_income" class="form-control" placeholder="Net Income">
+      </div>
+      <div class="col-md-4">
+        <input id="dsr_debt" class="form-control" placeholder="Total Debt">
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-primary w-100" onclick="calcDSR()">Calculate</button>
+      </div>
+    </div>
+    <div class="mt-3">
+      <b>DSR Result:</b> <span id="dsr_result">-</span>
+    </div>
+  </div>
 
-<!-- COST -->
-<div id="costBox" style="display:none;">
-<h5>Property Cost Calculator</h5>
-
-<div class="row g-2">
-<div class="col-md-6">
-<input id="cost_price" class="form-control" placeholder="Property Price">
-</div>
-<div class="col-md-6">
-<input id="cost_margin" class="form-control" value="90" placeholder="Loan Margin">
-</div>
-<div class="col-md-12">
-<button class="btn btn-success w-100" onclick="calcCost()">Calculate</button>
-</div>
-</div>
-
-<div class="mt-3" id="cost_output"></div>
-</div>
+  <!-- COST -->
+  <div id="costBox" style="display:none;">
+    <div class="row g-2">
+      <div class="col-md-6">
+        <input id="cost_price" class="form-control" placeholder="Property Price">
+      </div>
+      <div class="col-md-6">
+        <input id="cost_margin" class="form-control" value="90" placeholder="Loan Margin">
+      </div>
+      <div class="col-md-12">
+        <button class="btn btn-success w-100" onclick="calcCost()">Calculate</button>
+      </div>
+    </div>
+    <div class="mt-3" id="cost_output"></div>
+  </div>
 
 </section>
-
-</main>
-
-<script>
-
-function showPage(id){
-document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-}
-
-function showFinance(id){
-document.getElementById("dsrBox").style.display="none";
-document.getElementById("costBox").style.display="none";
-document.getElementById(id).style.display="block";
-}
-
-// DSR
-function calcDSR(){
-const income=parseFloat(document.getElementById("dsr_income").value)||0;
-const debt=parseFloat(document.getElementById("dsr_debt").value)||0;
-if(income<=0){document.getElementById("dsr_result").innerText="Enter income";return;}
-const dsr=(debt/income)*100;
-let status="PASS";
-if(dsr>70) status="FAIL";
-else if(dsr>=60) status="BORDERLINE";
-document.getElementById("dsr_result").innerText=dsr.toFixed(2)+"% ("+status+")";
-}
-
-// COST
-function calcCost(){
-const price=parseFloat(document.getElementById("cost_price").value)||0;
-const margin=parseFloat(document.getElementById("cost_margin").value)||90;
-if(price<=0){document.getElementById("cost_output").innerHTML="Enter price";return;}
-
-const loan=price*(margin/100);
-const down=price-loan;
-const spaLegal=price*0.01;
-const loanLegal=loan*0.01;
-const total=down+spaLegal+loanLegal;
-
-document.getElementById("cost_output").innerHTML=`
-<div class="alert alert-light border">
-Loan: RM ${loan.toFixed(0)}<br>
-Downpayment: RM ${down.toFixed(0)}<br>
-Legal Fee: RM ${(spaLegal+loanLegal).toFixed(0)}<br>
-<b>Total Cash: RM ${total.toFixed(0)}</b>
-</div>`;
-}
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
