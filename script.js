@@ -1,271 +1,224 @@
-/***********************************************
- * FINAL script.js – STABLE & COMPLETE
- * Buyer / Seller / Rent / Search / Add / Edit / Delete
- ***********************************************/
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nesh Property CRM – Financial Tools</title>
 
-/* ---------- Supabase config ---------- */
-const SUPABASE_URL = "https://erabbaphqueanoddsoqh.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVyYWJiYXBocXVlYW5vZGRzb3FoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4NDQ5MTMsImV4cCI6MjA1OTQyMDkxM30._o0s404jR_FrJcEEC-7kQIuV-9T2leBe1QfUhXpcmG4";
-
-const BUYER_TABLE = "callproperty";
-const SELLER_TABLE = "sellers";
-const RENT_TABLE = "rentinfo";
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* ---------- Helpers ---------- */
-const $ = (id) => document.getElementById(id);
-
-/* ---------- Bootstrap Modals ---------- */
-const buyerModal = new bootstrap.Modal($("buyerModal"));
-const sellerModal = new bootstrap.Modal($("sellerModal"));
-const rentModal = new bootstrap.Modal($("rentModal"));
-const confirmDeleteModal = new bootstrap.Modal($("confirmDeleteModal"));
-
-let deleteContext = null;
-
-/* =====================================================
-   PAGE SWITCHING
-===================================================== */
-function showPage(id) {
-  document.querySelectorAll(".page").forEach(p => p.classList.add("d-none"));
-  $(id).classList.remove("d-none");
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#eef2f7;
+  margin:0;
+  padding:20px;
 }
 
-document.querySelectorAll("[data-target]").forEach(el => {
-  el.addEventListener("click", () => showPage(el.dataset.target));
-});
-
-/* =====================================================
-   ADD BUTTONS – FIXED
-===================================================== */
-$("btnOpenAddBuyer").addEventListener("click", () => {
-  $("buyerForm").reset();
-  $("buyerRecordId").value = "";
-  $("buyerModalTitle").innerText = "Add Buyer";
-  buyerModal.show();
-});
-
-$("btnOpenAddSeller").addEventListener("click", () => {
-  $("sellerForm").reset();
-  $("sellerRecordId").value = "";
-  $("sellerModalTitle").innerText = "Add Seller";
-  sellerModal.show();
-});
-
-$("btnOpenAddRent").addEventListener("click", () => {
-  $("rentForm").reset();
-  $("rentEditId").value = "";
-  $("rentModalTitle").innerText = "Add Renter";
-  rentModal.show();
-});
-
-/* =====================================================
-   BUYERS
-===================================================== */
-async function fetchBuyerData(filter = "") {
-  const tbody = $("buyer-table-body");
-  tbody.innerHTML = "";
-
-  const { data } = await sb.from(BUYER_TABLE).select("*").order("id", { ascending: false });
-
-  data
-    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
-    .forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${r.name || ""}</td>
-          <td>${r.phone || ""}</td>
-          <td>${r.email || ""}</td>
-          <td>${r.location || ""}</td>
-          <td>${r.property || ""}</td>
-          <td>${r.source || ""}</td>
-          <td>${r.followup || ""}</td>
-          <td>${r.status || ""}</td>
-          <td>${r.notes || ""}</td>
-          <td>
-            <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WA</button>
-            <button class="btn btn-sm btn-primary btn-edit-buyer" data-id="${r.id}">Edit</button>
-            <button class="btn btn-sm btn-danger btn-delete-buyer" data-id="${r.id}">Delete</button>
-          </td>
-        </tr>`;
-    });
+.container{
+  max-width:900px;
+  margin:auto;
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
 }
 
-$("buyerForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const id = $("buyerRecordId").value;
+h2{ text-align:center; color:#003366; }
 
-  const payload = {
-    name: $("buyer_name").value,
-    phone: $("buyer_phone").value,
-    email: $("buyer_email").value,
-    location: $("buyer_location").value,
-    property: $("buyer_property").value,
-    source: $("buyer_source").value,
-    followup: $("buyer_followUp").value || null,
-    status: $("buyer_status").value,
-    notes: $("buyer_notes").value
-  };
-
-  id
-    ? await sb.from(BUYER_TABLE).update(payload).eq("id", id)
-    : await sb.from(BUYER_TABLE).insert([payload]);
-
-  buyerModal.hide();
-  fetchBuyerData();
-});
-
-/* =====================================================
-   SELLERS
-===================================================== */
-async function fetchSellerData(filter = "") {
-  const tbody = $("seller-table-body");
-  tbody.innerHTML = "";
-
-  const { data } = await sb.from(SELLER_TABLE).select("*").order("id", { ascending: false });
-
-  data
-    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
-    .forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${r.name || ""}</td>
-          <td>${r.phone || ""}</td>
-          <td>${r.email || ""}</td>
-          <td>${r.location || ""}</td>
-          <td>${r.property || ""}</td>
-          <td>${r.source || ""}</td>
-          <td>${r.followup || ""}</td>
-          <td>${r.status || ""}</td>
-          <td>${r.notes || ""}</td>
-          <td>
-            <button class="btn btn-sm btn-success btn-wa" data-phone="${r.phone}" data-name="${r.name}">WA</button>
-            <button class="btn btn-sm btn-primary btn-edit-seller" data-id="${r.id}">Edit</button>
-            <button class="btn btn-sm btn-danger btn-delete-seller" data-id="${r.id}">Delete</button>
-          </td>
-        </tr>`;
-    });
+.nav{
+  display:flex;
+  gap:10px;
+  margin-bottom:15px;
 }
 
-$("sellerForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const id = $("sellerRecordId").value;
-
-  const payload = {
-    name: $("seller_name").value,
-    phone: $("seller_phone").value,
-    email: $("seller_email").value,
-    location: $("seller_location").value,
-    property: $("seller_property").value,
-    source: $("seller_source").value,
-    followup: $("seller_followUp").value || null,
-    status: $("seller_status").value,
-    notes: $("seller_notes").value
-  };
-
-  id
-    ? await sb.from(SELLER_TABLE).update(payload).eq("id", id)
-    : await sb.from(SELLER_TABLE).insert([payload]);
-
-  sellerModal.hide();
-  fetchSellerData();
-});
-
-/* =====================================================
-   RENT – FIXED ACTIONS COLUMN
-===================================================== */
-async function fetchRentData(filter = "") {
-  const tbody = $("rent-table-body");
-  tbody.innerHTML = "";
-
-  const { data } = await sb.from(RENT_TABLE).select("*").order("id", { ascending: false });
-
-  data
-    .filter(r => JSON.stringify(r).toLowerCase().includes(filter))
-    .forEach(r => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${r.tenant_name || ""}</td>
-          <td>${r.property_address || ""}</td>
-          <td>${r.monthly_rent || ""}</td>
-          <td>${r.due_date || ""}</td>
-          <td>${r.tenant_contact || ""}</td>
-          <td>${r.status || ""}</td>
-          <td>${r.attachment_url ? `<a href="${r.attachment_url}" target="_blank">View</a>` : "-"}</td>
-          <td>
-            <button class="btn btn-sm btn-primary btn-edit-rent" data-id="${r.id}">Edit</button>
-            <button class="btn btn-sm btn-danger btn-delete-rent" data-id="${r.id}">Delete</button>
-          </td>
-        </tr>`;
-    });
+.nav button{
+  flex:1;
+  padding:10px;
+  border:none;
+  background:#003366;
+  color:white;
+  cursor:pointer;
+  border-radius:6px;
 }
 
-$("rentForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const id = $("rentEditId").value;
+.section{ display:none; }
 
-  const payload = {
-    tenant_name: $("tenantName").value,
-    property_address: $("propertyAddress").value,
-    monthly_rent: $("monthlyRent").value,
-    due_date: $("rentDueDate").value,
-    tenant_contact: $("tenantContact").value,
-    status: "Active"
-  };
+.active{ display:block; }
 
-  id
-    ? await sb.from(RENT_TABLE).update(payload).eq("id", id)
-    : await sb.from(RENT_TABLE).insert([payload]);
+input{
+  width:100%;
+  padding:8px;
+  margin:6px 0 12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
 
-  rentModal.hide();
-  fetchRentData();
-});
+button.primary{ background:#003366; color:white; }
+button.green{ background:#28a745; color:white; }
+button.whatsapp{ background:#25D366; color:white; }
 
-/* =====================================================
-   GLOBAL ACTIONS
-===================================================== */
-document.addEventListener("click", e => {
-  if (e.target.classList.contains("btn-wa")) {
-    const p = e.target.dataset.phone?.replace(/\D/g, "");
-    const n = e.target.dataset.name || "Client";
-    window.open(`https://wa.me/60${p}?text=${encodeURIComponent(`Hi ${n}, this is Theenesh from Nesh Property 👋`)}`);
-  }
+.card{
+  background:#f7f9fc;
+  padding:12px;
+  border-radius:6px;
+  margin-top:10px;
+}
+.result-line{
+  display:flex;
+  justify-content:space-between;
+}
+.total{
+  font-weight:bold;
+  font-size:16px;
+  color:#003366;
+}
+</style>
+</head>
 
-  if (e.target.classList.contains("btn-delete-buyer"))
-    deleteContext = { table: BUYER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+<body>
 
-  if (e.target.classList.contains("btn-delete-seller"))
-    deleteContext = { table: SELLER_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
+<div class="container">
 
-  if (e.target.classList.contains("btn-delete-rent"))
-    deleteContext = { table: RENT_TABLE, id: e.target.dataset.id }, confirmDeleteModal.show();
-});
+<h2>Nesh Property CRM – Financial Tools</h2>
 
-$("confirmDeleteBtn").addEventListener("click", async () => {
-  await sb.from(deleteContext.table).delete().eq("id", deleteContext.id);
-  confirmDeleteModal.hide();
-  fetchBuyerData(); fetchSellerData(); fetchRentData();
-});
+<div class="nav">
+  <button onclick="showTab('clients')">Clients</button>
+  <button onclick="showTab('dsr')">DSR</button>
+  <button onclick="showTab('cost')">Cost Calculator</button>
+</div>
 
-/* =====================================================
-   SEARCH
-===================================================== */
-$("searchBuyer").addEventListener("input", e => fetchBuyerData(e.target.value.toLowerCase()));
-$("searchSeller").addEventListener("input", e => fetchSellerData(e.target.value.toLowerCase()));
-$("searchRent").addEventListener("input", e => fetchRentData(e.target.value.toLowerCase()));
+<!-- CLIENTS -->
+<div id="clients" class="section active">
+  <h3>Clients</h3>
+  <p>Your CRM client list here...</p>
+</div>
 
-/* =====================================================
-   INIT
-===================================================== */
-document.addEventListener("DOMContentLoaded", () => {
-  showPage("buyerPage");
-  fetchBuyerData();
-  fetchSellerData();
-  fetchRentData();
-});
+<!-- DSR -->
+<div id="dsr" class="section">
+  <h3>DSR Tool</h3>
+  <p>Paste your DSR calculator here later.</p>
+</div>
 
+<!-- COST CALCULATOR -->
+<div id="cost" class="section">
+
+<h3>Property Cost Calculator</h3>
+
+<label>Client Name</label>
+<input type="text" id="clientName">
+
+<label>Client Phone</label>
+<input type="text" id="clientPhone">
+
+<label>Property Price (RM)</label>
+<input type="number" id="price">
+
+<label>Loan Margin (%)</label>
+<input type="number" id="margin" value="90">
+
+<button class="primary" onclick="calculate()">Calculate</button>
+<button class="green" onclick="generatePDF()">Generate PDF</button>
+<button class="whatsapp" onclick="sendWhatsApp()">Send WhatsApp</button>
+
+<div id="output"></div>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+
+function showTab(id){
+  document.querySelectorAll('.section').forEach(sec=>sec.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+let reportText="";
+
+function formatRM(num){
+  return "RM " + num.toLocaleString(undefined,{minimumFractionDigits:2});
+}
+
+function calculate(){
+
+let price = +price.value;
+let margin = +margin.value;
+if(!price){ alert("Enter property price"); return; }
+
+let loan = price*(margin/100);
+let down = price-loan;
+let spaLegal = price*0.01;
+let loanLegal = loan*0.01;
+let sst = (spaLegal+loanLegal)*0.08;
+
+let spaStamp = price<=100000?price*0.01:
+price<=500000?1000+(price-100000)*0.02:
+price<=1000000?9000+(price-500000)*0.03:
+24000+(price-1000000)*0.04;
+
+let mot = spaStamp;
+let loanStamp = loan*0.005;
+let totalCash = down+spaLegal+loanLegal+sst+spaStamp+mot+loanStamp;
+
+output.innerHTML=`
+<div class="card">
+<div class="result-line"><span>Loan Amount</span><span>${formatRM(loan)}</span></div>
+<div class="result-line"><span>Downpayment</span><span>${formatRM(down)}</span></div>
+</div>
+
+<div class="card">
+<div class="result-line"><span>SPA Legal</span><span>${formatRM(spaLegal)}</span></div>
+<div class="result-line"><span>Loan Legal</span><span>${formatRM(loanLegal)}</span></div>
+<div class="result-line"><span>SST</span><span>${formatRM(sst)}</span></div>
+</div>
+
+<div class="card">
+<div class="result-line"><span>SPA Stamp</span><span>${formatRM(spaStamp)}</span></div>
+<div class="result-line"><span>MOT Stamp</span><span>${formatRM(mot)}</span></div>
+<div class="result-line"><span>Loan Stamp</span><span>${formatRM(loanStamp)}</span></div>
+</div>
+
+<div class="card total">
+Total Cash Needed: ${formatRM(totalCash)}
+</div>
+`;
+
+reportText = `
+Nesh Property Cost Report
+
+Client: ${clientName.value}
+Total Cash Needed: ${formatRM(totalCash)}
+`;
+}
+
+function generatePDF(){
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+
+doc.setFillColor(0,51,102);
+doc.rect(0,0,210,30,"F");
+doc.setTextColor(255,255,255);
+doc.setFontSize(16);
+doc.text("Nesh Property",105,15,null,null,"center");
+doc.setFontSize(11);
+doc.text("Property Cost Report",105,23,null,null,"center");
+
+doc.setTextColor(0,0,0);
+doc.text(reportText,14,45);
+
+doc.save("Nesh_Property_Cost_Report.pdf");
+}
+
+function sendWhatsApp(){
+let phone = clientPhone.value.replace(/^0/,"60");
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(reportText)}`,'_blank');
+}
+
+</script>
+
+</body>
+</html>
 
 
 
