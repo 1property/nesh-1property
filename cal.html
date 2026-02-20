@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nesh Property – Cost Calculator</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#eef2f7;
+  margin:0;
+  padding:20px;
+}
+
+.container{
+  max-width:750px;
+  margin:auto;
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+h2{
+  text-align:center;
+  color:#003366;
+  margin-bottom:20px;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  margin:6px 0 12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  font-weight:600;
+  cursor:pointer;
+  margin-top:8px;
+  width:100%;
+}
+
+.primary{ background:#003366; color:white; }
+.green{ background:#28a745; color:white; }
+.whatsapp{ background:#25D366; color:white; }
+
+.section{
+  margin-top:20px;
+  padding:15px;
+  background:#f7f9fc;
+  border-radius:8px;
+}
+
+.result-line{
+  display:flex;
+  justify-content:space-between;
+  margin:6px 0;
+}
+
+.total{
+  font-size:18px;
+  font-weight:bold;
+  color:#003366;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Nesh Property – Cost Calculator</h2>
+
+<label>Client Name</label>
+<input type="text" id="clientName">
+
+<label>Client Phone</label>
+<input type="text" id="clientPhone">
+
+<label>Property Price (RM)</label>
+<input type="number" id="price">
+
+<label>Loan Margin (%)</label>
+<input type="number" id="margin" value="90">
+
+<button class="primary" onclick="calculate()">Calculate</button>
+<button class="green" onclick="generatePDF()">Generate PDF</button>
+<button class="whatsapp" onclick="sendWhatsApp()">Send WhatsApp</button>
+
+<div id="output"></div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+
+let reportText="";
+
+function formatRM(num){
+  return "RM " + num.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function calculate(){
+
+let price = parseFloat(document.getElementById("price").value);
+let margin = parseFloat(document.getElementById("margin").value);
+let name = document.getElementById("clientName").value || "-";
+let phone = document.getElementById("clientPhone").value || "-";
+
+if(!price){ alert("Enter property price"); return; }
+
+let loan = price * (margin/100);
+let down = price - loan;
+
+let spaLegal = price * 0.01;
+let loanLegal = loan * 0.01;
+let sst = (spaLegal + loanLegal) * 0.08;
+
+let spaStamp = 0;
+if(price <= 100000) spaStamp = price * 0.01;
+else if(price <= 500000) spaStamp = 1000 + (price-100000)*0.02;
+else if(price <= 1000000) spaStamp = 9000 + (price-500000)*0.03;
+else spaStamp = 24000 + (price-1000000)*0.04;
+
+let mot = spaStamp;
+let loanStamp = loan * 0.005;
+
+let totalCash = down + spaLegal + loanLegal + sst + spaStamp + mot + loanStamp;
+
+document.getElementById("output").innerHTML = `
+<div class="section">
+<div class="result-line"><span>Loan Amount</span><span>${formatRM(loan)}</span></div>
+<div class="result-line"><span>Downpayment</span><span>${formatRM(down)}</span></div>
+</div>
+
+<div class="section">
+<div class="result-line"><span>SPA Legal</span><span>${formatRM(spaLegal)}</span></div>
+<div class="result-line"><span>Loan Legal</span><span>${formatRM(loanLegal)}</span></div>
+<div class="result-line"><span>SST (8%)</span><span>${formatRM(sst)}</span></div>
+</div>
+
+<div class="section">
+<div class="result-line"><span>SPA Stamp Duty</span><span>${formatRM(spaStamp)}</span></div>
+<div class="result-line"><span>MOT Stamp Duty</span><span>${formatRM(mot)}</span></div>
+<div class="result-line"><span>Loan Stamp (0.5%)</span><span>${formatRM(loanStamp)}</span></div>
+</div>
+
+<div class="section total">
+Total Cash Needed: ${formatRM(totalCash)}
+</div>
+`;
+
+reportText = `
+Nesh Property – Cost Report
+
+Client: ${name}
+Phone: ${phone}
+
+Property Price: ${formatRM(price)}
+Loan Amount: ${formatRM(loan)}
+Downpayment: ${formatRM(down)}
+
+SPA Legal: ${formatRM(spaLegal)}
+Loan Legal: ${formatRM(loanLegal)}
+SST: ${formatRM(sst)}
+
+SPA Stamp: ${formatRM(spaStamp)}
+MOT Stamp: ${formatRM(mot)}
+Loan Stamp: ${formatRM(loanStamp)}
+
+Total Cash Needed: ${formatRM(totalCash)}
+`;
+
+}
+
+function generatePDF(){
+
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+
+doc.setFillColor(0,51,102);
+doc.rect(0,0,210,30,"F");
+doc.setTextColor(255,255,255);
+doc.setFontSize(16);
+doc.text("Nesh Property",105,15,null,null,"center");
+doc.setFontSize(11);
+doc.text("Property Cost Breakdown Report",105,23,null,null,"center");
+
+doc.setTextColor(0,0,0);
+doc.setFontSize(11);
+doc.text(reportText,14,45);
+
+doc.save("Nesh_Property_Cost_Report.pdf");
+}
+
+function sendWhatsApp(){
+let phone = document.getElementById("clientPhone").value.replace(/^0/,"60");
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(reportText)}`,'_blank');
+}
+
+</script>
+
+</body>
+</html>

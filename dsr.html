@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nesh Property — PRO DSR Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#eef2f7;
+  margin:0;
+  padding:20px;
+}
+
+.container{
+  max-width:750px;
+  margin:auto;
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+h2{
+  text-align:center;
+  color:#003366;
+  margin-bottom:20px;
+}
+
+.top-inputs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:15px;
+}
+
+input{
+  width:100%;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:14px;
+}
+
+table{
+  border-collapse: collapse;
+  width:100%;
+}
+
+th{
+  background:#4a78c2;
+  color:white;
+  padding:10px;
+}
+
+td{
+  border:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+}
+
+.section{
+  background:#4a78c2;
+  color:white;
+  font-weight:bold;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:6px;
+  margin:6px 4px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.blue{ background:#003366; color:white; }
+.green{ background:#28a745; color:white; }
+.whatsapp{ background:#25D366; color:white; }
+
+.btn-group{
+  text-align:center;
+  margin-top:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Nesh Property — PRO DSR Calculator</h2>
+
+<div class="top-inputs">
+<input id="clientName" placeholder="Client Name">
+<input id="clientPhone" placeholder="Phone">
+</div>
+
+<table>
+<tr><th>Loan</th><th>Monthly (RM)</th></tr>
+<tr><td>Car Loan</td><td><input id="car"></td></tr>
+<tr><td>Home Loan</td><td><input id="home"></td></tr>
+<tr><td>Personal Loan</td><td><input id="pl"></td></tr>
+<tr><td>Credit Card</td><td><input id="cc"></td></tr>
+<tr><td>Study Loan</td><td><input id="st"></td></tr>
+<tr><td>Others</td><td><input id="ot"></td></tr>
+
+<tr class="section"><td>Total Debt</td><td id="debt">0</td></tr>
+
+<tr><th>Income</th><th>Value</th></tr>
+<tr><td>Net Income (RM)</td><td><input id="income"></td></tr>
+<tr><td>Bank DSR Limit (%)</td><td><input id="limit" value="60"></td></tr>
+
+<tr><th>Loan Setting</th><th>Value</th></tr>
+<tr><td>Interest Rate (%)</td><td><input id="rate" value="4.5"></td></tr>
+<tr><td>Tenure (Years)</td><td><input id="years" value="35"></td></tr>
+
+<tr class="section"><td>Max House Installment</td><td id="house">0</td></tr>
+<tr class="section"><td>Total Commitment</td><td id="commit">0</td></tr>
+<tr class="section"><td>DSR %</td><td id="dsr">0%</td></tr>
+<tr class="section"><td>Status</td><td id="status">-</td></tr>
+
+<tr class="section"><td>Max Loan Amount</td><td id="loan">RM 0</td></tr>
+</table>
+
+<div class="btn-group">
+<button class="blue" onclick="calculate()">Calculate</button>
+<button class="green" onclick="generatePDF()">Generate PDF</button>
+<button class="whatsapp" onclick="sendWhatsApp()">Send WhatsApp</button>
+<button onclick="window.print()">Print</button>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+
+function v(id){ return +document.getElementById(id).value || 0; }
+
+function calculate(){
+
+const d = v("car")+v("home")+v("pl")+v("cc")+v("st")+v("ot");
+document.getElementById("debt").innerText = d;
+
+const income = v("income");
+const limit = v("limit")/100;
+
+const maxCommit = income * limit;
+const housePay = d >= maxCommit ? 0 : (maxCommit - d);
+document.getElementById("house").innerText = Math.round(housePay);
+
+const totalCommit = d + housePay;
+document.getElementById("commit").innerText = Math.round(totalCommit);
+
+const dsrVal = income ? (totalCommit / income) * 100 : 0;
+document.getElementById("dsr").innerText = dsrVal.toFixed(2)+"%";
+
+let status = "PASS";
+if(dsrVal>70) status="FAIL";
+else if(dsrVal>=60) status="BORDERLINE";
+document.getElementById("status").innerText = status;
+
+const rate = v("rate")/100/12;
+const months = v("years")*12;
+
+let loanAmount=0;
+if(rate>0 && months>0 && housePay>0){
+loanAmount = housePay * (1 - Math.pow(1+rate,-months)) / rate;
+}
+document.getElementById("loan").innerText = "RM "+Math.round(loanAmount);
+
+}
+
+function generatePDF(){
+
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF();
+
+const name = clientName.value || "-";
+const phone = clientPhone.value || "-";
+const debt = document.getElementById("debt").innerText;
+const income = document.getElementById("income").value || 0;
+const dsr = document.getElementById("dsr").innerText;
+const status = document.getElementById("status").innerText;
+const house = document.getElementById("house").innerText;
+const loan = document.getElementById("loan").innerText;
+
+// Header
+doc.setFillColor(0,51,102);
+doc.rect(0,0,210,30,"F");
+doc.setTextColor(255,255,255);
+doc.setFontSize(16);
+doc.text("Nesh Property",105,15,null,null,"center");
+doc.setFontSize(11);
+doc.text("Professional DSR Assessment Report",105,23,null,null,"center");
+doc.setTextColor(0,0,0);
+
+// Client
+doc.setFontSize(12);
+doc.text("Client Information",14,45);
+doc.line(14,47,196,47);
+doc.setFontSize(11);
+doc.text("Name: "+name,14,60);
+doc.text("Phone: "+phone,14,68);
+
+// Financial
+doc.setFontSize(12);
+doc.text("Financial Summary",14,90);
+doc.line(14,92,196,92);
+doc.setFontSize(11);
+doc.text("Total Debt: RM "+debt,14,105);
+doc.text("Income: RM "+income,14,113);
+doc.text("DSR: "+dsr,14,121);
+doc.text("Status: "+status,14,129);
+
+// Loan
+doc.setFontSize(12);
+doc.text("Loan Eligibility",14,150);
+doc.line(14,152,196,152);
+doc.setFontSize(11);
+doc.text("Max Monthly House: RM "+house,14,165);
+doc.text("Max Loan Amount: "+loan,14,173);
+
+// Footer
+doc.setFontSize(9);
+doc.text("Generated by Nesh Property System",105,285,null,null,"center");
+
+doc.save("Nesh_DSR_Report.pdf");
+}
+
+function sendWhatsApp(){
+let phone = clientPhone.value.replace(/^0/,"60");
+let text = `Nesh Property DSR Report
+
+Client: ${clientName.value}
+DSR: ${document.getElementById("dsr").innerText}
+Status: ${document.getElementById("status").innerText}
+Max Loan: ${document.getElementById("loan").innerText}`;
+
+window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`,'_blank');
+}
+
+</script>
+
+</body>
+</html>
